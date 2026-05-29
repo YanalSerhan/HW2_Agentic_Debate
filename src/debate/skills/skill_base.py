@@ -1,1 +1,7 @@
-"""Abstract SkillBase."""
+from abc import ABC, abstractmethod
+
+class SkillBase(ABC):
+    """Abstract base class for agent skills."""
+    @abstractmethod
+    def load_prompt(self) -> str:
+        pass

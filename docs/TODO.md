@@ -515,7 +515,7 @@ debate-agents/
 
 ### 3.1 — `src/debate/shared/logging_mixin.py` — LoggingMixin
 
-- [ ] `LoggingMixin` class:
+- [x] `LoggingMixin` class:
   - `setup_logging(self, agent_name: str, config: LoggingConfig)`: configures JSONL file logger with rotation
   - `log_event(self, event_type: str, data: dict)`: writes structured JSONL log entry
   - `log_api_call(self, prompt_tokens: int, completion_tokens: int, cost_usd: float)`: dedicated API cost log
@@ -533,14 +533,14 @@ debate-agents/
     ```
   - Rotating handler: max 20 files × 500 lines each (JSONL, one record per line)
   - File ≤ 150 lines
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_log_entry_is_valid_json`
   - `test_rotation_triggered_at_500_lines`
   - `test_log_file_created_in_log_dir`
 
 ### 3.2 — `src/debate/shared/watchdog.py` — WatchdogMixin
 
-- [ ] `WatchdogMixin` class:
+- [x] `WatchdogMixin` class:
   - `start_watchdog(self, timeout: float, process: subprocess.Popen)`: starts background daemon thread monitoring process
   - `ping_watchdog(self)`: resets watchdog timer (called after each successful round)
   - `stop_watchdog(self)`: cleanly stops watchdog thread
@@ -548,7 +548,7 @@ debate-agents/
   - `on_watchdog_kill(self)`: override in subclass for custom behavior
   - Context manager support (`__enter__`, `__exit__`)
   - File ≤ 150 lines
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_watchdog_kills_process_on_timeout`
   - `test_watchdog_reset_prevents_kill`
   - `test_watchdog_cleans_up_on_stop`
@@ -556,7 +556,7 @@ debate-agents/
 
 ### 3.3 — `src/debate/ipc/message.py` — DebateMessage
 
-- [ ] `DebateMessage` dataclass (Pydantic BaseModel for validation):
+- [x] `DebateMessage` dataclass (Pydantic BaseModel for validation):
   ```python
   class DebateMessage(BaseModel):
       message_id: str          # UUID
@@ -570,7 +570,7 @@ debate-agents/
       timestamp: datetime
       metadata: dict
   ```
-- [ ] `Evidence` dataclass:
+- [x] `Evidence` dataclass:
   ```python
   class Evidence(BaseModel):
       url: str
@@ -578,10 +578,10 @@ debate-agents/
       snippet: str
       retrieved_at: datetime
   ```
-- [ ] `to_json(self) -> str`: serialize to JSON
-- [ ] `from_json(cls, data: str) -> DebateMessage`: deserialize with validation
-- [ ] `validate_web_search_used(self) -> bool`: returns `True` if evidence list is non-empty (enforces mandatory search)
-- [ ] Write unit tests:
+- [x] `to_json(self) -> str`: serialize to JSON
+- [x] `from_json(cls, data: str) -> DebateMessage`: deserialize with validation
+- [x] `validate_web_search_used(self) -> bool`: returns `True` if evidence list is non-empty (enforces mandatory search)
+- [x] Write unit tests:
   - `test_serialize_deserialize_round_trip`
   - `test_validation_fails_on_invalid_role`
   - `test_validate_web_search_used_requires_evidence`
@@ -590,7 +590,7 @@ debate-agents/
 
 ### 3.4 — `src/debate/ipc/ipc_channel.py` — IPCChannel
 
-- [ ] `IPCChannel` class using `multiprocessing.Queue`:
+- [x] `IPCChannel` class using `multiprocessing.Queue`:
   - `send(self, message: DebateMessage)`: serializes and puts to queue
   - `receive(self, timeout: float = 30.0) -> DebateMessage`: gets from queue with timeout
   - `is_empty(self) -> bool`
@@ -599,7 +599,7 @@ debate-agents/
   - Raises `IPCQueueFullError` on send to full queue
   - All messages validated on receive (Pydantic)
   - File ≤ 150 lines
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_send_receive_round_trip`
   - `test_receive_raises_on_timeout`
   - `test_queue_full_raises_backpressure_error`
@@ -607,7 +607,7 @@ debate-agents/
 
 ### 3.5 — `src/debate/ipc/ipc_mixin.py` — IPCMixin
 
-- [ ] `IPCMixin`:
+- [x] `IPCMixin`:
   - `send_to_father(self, message: DebateMessage)`: wraps IPCChannel.send
   - `send_to_child(self, agent_role: AgentRole, message: DebateMessage)`: for Father only
   - `receive_message(self, timeout: float) -> DebateMessage`
@@ -616,7 +616,7 @@ debate-agents/
 
 ### 3.6 — `src/debate/agents/base_agent.py` — BaseAgent
 
-- [ ] Abstract `BaseAgent(LoggingMixin, WatchdogMixin, IPCMixin)`:
+- [x] Abstract `BaseAgent(LoggingMixin, WatchdogMixin, IPCMixin)`:
   - Abstract methods: `process_message(self, message: DebateMessage) -> DebateMessage`, `get_system_prompt(self) -> str`
   - Concrete methods: `initialize(self, config: ConfigManager)`, `call_api(self, messages: list, tools: list) -> str`
   - `call_api` MUST route through `ApiGatekeeper.execute()`
@@ -625,14 +625,14 @@ debate-agents/
   - `get_role(self) -> AgentRole`
   - `get_session_id(self) -> str`
   - File ≤ 150 lines
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_call_api_routes_through_gatekeeper`
   - `test_call_api_raises_if_no_evidence_in_response`
   - `test_abstract_methods_enforced`
 
 ### 3.7 — `src/debate/agents/base_subagent.py` — BaseSubagent
 
-- [ ] Abstract `BaseSubagent(BaseAgent)`:
+- [x] Abstract `BaseSubagent(BaseAgent)`:
   - `position: str` — the specific stance this agent defends (e.g., "Madrid is better than Barcelona")
   - `get_skill(self) -> SkillBase`: returns agent's unique skill instance
   - `generate_argument(self, round_number: int, history: list[DebateMessage]) -> DebateMessage`
@@ -644,7 +644,7 @@ debate-agents/
 
 ### 3.8 — `src/debate/agents/pro_subagent.py` — ProSubagent
 
-- [ ] `ProSubagent(BaseSubagent)`:
+- [x] `ProSubagent(BaseSubagent)`:
   - `get_system_prompt(self) -> str`: loads `pro_skill.skill.md`, injects position
   - `process_message(self, message: DebateMessage) -> DebateMessage`
   - Pro argumentation style: evidence-first, assertive, factual precedence
@@ -653,7 +653,7 @@ debate-agents/
 
 ### 3.9 — `src/debate/agents/con_subagent.py` — ConSubagent
 
-- [ ] `ConSubagent(BaseSubagent)`:
+- [x] `ConSubagent(BaseSubagent)`:
   - `get_system_prompt(self) -> str`: loads `con_skill.skill.md`, injects position
   - `process_message(self, message: DebateMessage) -> DebateMessage`
   - Con argumentation style: Socratic questioning + rebuttal focus, exposes gaps
@@ -663,7 +663,7 @@ debate-agents/
 
 ### 3.10 — `src/debate/agents/master_agent.py` — MasterAgent
 
-- [ ] `MasterAgent(BaseAgent)`:
+- [x] `MasterAgent(BaseAgent)`:
   - `orchestrate_round(self, round_number: int) -> RoundResult`: requests argument from Pro, sends to Con, receives counter, logs round
   - `request_argument(self, agent: BaseSubagent, context: list) -> DebateMessage`
   - `deliver_to_opponent(self, message: DebateMessage, recipient: BaseSubagent) -> DebateMessage`
