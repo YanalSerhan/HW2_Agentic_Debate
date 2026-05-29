@@ -1,1 +1,156 @@
-"""Tests for gatekeeper."""
+import pytest
+import time
+from unittest.mock import MagicMock
+from debate.shared.gatekeeper import ApiGatekeeper, RateLimitConfig, GatekeeperQueueFullError, MaxRetriesExceededError
+
+@pytest.fixture
+def rate_limit_config():
+    return RateLimitConfig(
+        requests_per_minute=30,
+        requests_per_hour=500,
+        concurrent_max=3,
+        retry_after_seconds=30,
+        max_retries=3,
+        queue_max_depth=100
+    )
+
+def test_execute_calls_api_function(rate_limit_config):
+    gatekeeper = ApiGatekeeper(rate_limit_config)
+    mock_api = MagicMock(return_value="success")
+    
+    result = gatekeeper.execute(mock_api, "arg1", kwarg1="val1")
+    
+    assert result == "success"
+    mock_api.assert_called_once_with("arg1", kwarg1="val1")
+
+def test_rate_limit_enforced(rate_limit_config, monkeypatch):
+    # Set requests_per_minute to 2 to test easily
+    config = RateLimitConfig(
+        requests_per_minute=2,
+        requests_per_hour=500,
+        concurrent_max=3,
+        retry_after_seconds=30,
+        max_retries=3,
+        queue_max_depth=100
+    )
+    gatekeeper = ApiGatekeeper(config)
+    
+    mock_api = MagicMock(return_value="success")
+    
+    # Fill the rate limit
+    gatekeeper.execute(mock_api)
+    gatekeeper.execute(mock_api)
+    
+    # Next call should queue and process_queue will loop.
+    # To avoid infinite loop in tests, we patch time.time to advance it by 61 seconds 
+    # when _process_queue is called.
+    original_time = time.time
+    current_time = original_time()
+    
+    def mock_time():
+        return current_time
+        
+    def mock_sleep(seconds):
+        nonlocal current_time
+        current_time += 61  # advance past the 60s window
+        
+    monkeypatch.setattr(time, "time", mock_time)
+    monkeypatch.setattr(time, "sleep", mock_sleep)
+    
+    gatekeeper.execute(mock_api)
+    
+    assert mock_api.call_count == 3
+    status = gatekeeper.get_queue_status()
+    assert status.requests_this_minute == 1
+
+def test_queue_fills_and_backpressure_triggered(rate_limit_config):
+    config = RateLimitConfig(
+        requests_per_minute=0, # zero means always rate limited
+        requests_per_hour=500,
+        concurrent_max=3,
+        retry_after_seconds=30,
+        max_retries=3,
+        queue_max_depth=2 # tiny queue
+    )
+    gatekeeper = ApiGatekeeper(config)
+    mock_api = MagicMock()
+    
+    # fill queue manually for test
+    gatekeeper.queue.append(object())
+    gatekeeper.queue.append(object())
+    
+    with pytest.raises(GatekeeperQueueFullError, match="Queue depth exceeded max depth"):
+        gatekeeper.execute(mock_api)
+
+def test_retries_on_transient_error(rate_limit_config, monkeypatch):
+    gatekeeper = ApiGatekeeper(rate_limit_config)
+    
+    # Patch time.sleep to avoid waiting during test
+    monkeypatch.setattr(time, "sleep", lambda x: None)
+    
+    mock_api = MagicMock(side_effect=[Exception("transient"), "success"])
+    
+    result = gatekeeper.execute(mock_api)
+    
+    assert result == "success"
+    assert mock_api.call_count == 2
+
+def test_raises_after_max_retries(rate_limit_config, monkeypatch):
+    gatekeeper = ApiGatekeeper(rate_limit_config)
+    
+    monkeypatch.setattr(time, "sleep", lambda x: None)
+    
+    mock_api = MagicMock(side_effect=Exception("persistent error"))
+    
+    with pytest.raises(MaxRetriesExceededError, match="API call failed after 3 retries"):
+        gatekeeper.execute(mock_api)
+        
+    assert mock_api.call_count == 4 # 1 initial + 3 retries
+
+def test_queue_status_accurate(rate_limit_config):
+    gatekeeper = ApiGatekeeper(rate_limit_config)
+    mock_api = MagicMock()
+    
+    gatekeeper.execute(mock_api)
+    gatekeeper.execute(mock_api)
+    
+    status = gatekeeper.get_queue_status()
+    assert status.depth == 0
+    assert status.max_depth == 100
+    assert status.requests_this_minute == 2
+    assert status.requests_this_hour == 2
+
+def test_drains_queue_after_window_reset(rate_limit_config, monkeypatch):
+    # This is implicitly tested by test_rate_limit_enforced, but let's test that 
+    # it eventually allows multiple queued items to proceed.
+    config = RateLimitConfig(
+        requests_per_minute=1,
+        requests_per_hour=500,
+        concurrent_max=3,
+        retry_after_seconds=30,
+        max_retries=3,
+        queue_max_depth=100
+    )
+    gatekeeper = ApiGatekeeper(config)
+    
+    mock_api = MagicMock(return_value="success")
+    
+    gatekeeper.execute(mock_api) # uses the 1 allowed request
+    
+    original_time = time.time
+    current_time = original_time()
+    
+    def mock_time():
+        return current_time
+        
+    def mock_sleep(seconds):
+        nonlocal current_time
+        current_time += 61
+        
+    monkeypatch.setattr(time, "time", mock_time)
+    monkeypatch.setattr(time, "sleep", mock_sleep)
+    
+    # This should block, advance time via sleep, and then succeed
+    gatekeeper.execute(mock_api)
+    
+    assert mock_api.call_count == 2

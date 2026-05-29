@@ -396,7 +396,7 @@ debate-agents/
 
 ### 2.1 — `src/debate/shared/config.py` — ConfigManager
 
-- [ ] `ConfigManager` class:
+- [x] `ConfigManager` class:
   - Loads `config/setup.json`, `config/rate_limits.json`, `config/logging_config.json` on init
   - Validates config version field matches expected version
   - Provides `get(key: str, default=None)` method
@@ -404,7 +404,7 @@ debate-agents/
   - Provides `get_logging_config() -> LoggingConfig`
   - Validates required keys on startup; raises `ConfigurationError` if missing
   - File ≤ 150 lines
-- [ ] `config/setup.json`:
+- [x] `config/setup.json`:
   ```json
   {
     "version": "1.00",
@@ -416,7 +416,7 @@ debate-agents/
     "max_argument_words": 300
   }
   ```
-- [ ] `config/rate_limits.json`:
+- [x] `config/rate_limits.json`:
   ```json
   {
     "rate_limits": {
@@ -434,7 +434,7 @@ debate-agents/
     }
   }
   ```
-- [ ] `config/logging_config.json`:
+- [x] `config/logging_config.json`:
   ```json
   {
     "version": "1.00",
@@ -445,7 +445,7 @@ debate-agents/
     "format": "jsonl"
   }
   ```
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_loads_all_config_files`
   - `test_get_returns_default_on_missing_key`
   - `test_raises_on_missing_required_key`
@@ -453,19 +453,19 @@ debate-agents/
 
 ### 2.2 — `src/debate/shared/gatekeeper.py` — ApiGatekeeper
 
-- [ ] `RateLimitConfig` dataclass (loaded from `config/rate_limits.json`):
+- [x] `RateLimitConfig` dataclass (loaded from `config/rate_limits.json`):
   - `requests_per_minute: int`
   - `requests_per_hour: int`
   - `concurrent_max: int`
   - `retry_after_seconds: int`
   - `max_retries: int`
   - `queue_max_depth: int`
-- [ ] `QueueStatus` dataclass:
+- [x] `QueueStatus` dataclass:
   - `depth: int`
   - `max_depth: int`
   - `requests_this_minute: int`
   - `requests_this_hour: int`
-- [ ] `ApiGatekeeper` class:
+- [x] `ApiGatekeeper` class:
   - `__init__(self, config: RateLimitConfig)`: initializes FIFO queue, counters, sliding window
   - `execute(self, api_call: Callable, *args, **kwargs) -> Any`:
     - Checks rate limits before execution
@@ -478,8 +478,8 @@ debate-agents/
   - `_check_rate_limit(self) -> bool`: sliding window algorithm
   - `_process_queue(self)`: drains queue when window resets
   - File ≤ 150 lines (split queue logic into `_queue_processor.py` if needed)
-- [ ] No API calls bypass the gatekeeper — enforce at architecture level
-- [ ] Write unit tests (mock the actual API call):
+- [x] No API calls bypass the gatekeeper — enforce at architecture level
+- [x] Write unit tests (mock the actual API call):
   - `test_execute_calls_api_function`
   - `test_rate_limit_enforced`
   - `test_queue_fills_and_backpressure_triggered`
@@ -490,15 +490,15 @@ debate-agents/
 
 ### 2.3 — `src/debate/sdk/sdk.py` — DebateSDK
 
-- [ ] `DebateSDK` class (single entry point for all external consumers):
+- [x] `DebateSDK` class (single entry point for all external consumers):
   - `__init__(self, topic: str, config_path: str = "config/")`: loads config, initializes gatekeeper, creates session
   - `run_debate(self) -> Verdict`: orchestrates full debate, returns structured verdict
   - `get_transcript(self) -> list[RoundResult]`: returns all debate rounds
   - `get_queue_status(self) -> QueueStatus`: delegates to gatekeeper
   - All business logic accessed through this class — no direct imports of agent internals from CLI
   - File ≤ 150 lines
-- [ ] Expose `main()` function for CLI entrypoint
-- [ ] Write unit tests:
+- [x] Expose `main()` function for CLI entrypoint
+- [x] Write unit tests:
   - `test_sdk_initializes_with_valid_topic`
   - `test_run_debate_returns_verdict` (mocked agents)
   - `test_get_transcript_returns_rounds`
