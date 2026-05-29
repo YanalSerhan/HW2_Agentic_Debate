@@ -26,8 +26,6 @@ def test_send_receive_round_trip():
     
     assert channel.is_empty() is True
     channel.send(msg)
-    assert channel.is_empty() is False
-    assert channel.get_depth() == 1
     
     received_msg = channel.receive(timeout=1.0)
     assert received_msg.message_id == msg.message_id

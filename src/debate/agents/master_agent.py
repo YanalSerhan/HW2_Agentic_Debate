@@ -36,6 +36,21 @@ class MasterAgent(BaseAgent):
             timestamp=datetime.now(timezone.utc)
         )
 
+    def receive_from_child(self, child_role: AgentRole, expected_type: MessageType, timeout: float = 30.0) -> DebateMessage:
+        """Receives a message from a child, validating sender and message type."""
+        msg = self.receive_message(channel_role=child_role, timeout=timeout)
+
+        if msg.sender != child_role:
+            raise ValueError(f"Security: Expected message from {child_role}, but sender claims to be {msg.sender}")
+
+        if msg.recipient != AgentRole.FATHER:
+            raise ValueError(f"Security: Message from {child_role} was not addressed to Father (addressed to {msg.recipient})")
+
+        if msg.message_type != expected_type:
+            raise ValueError(f"Protocol: Expected {expected_type}, got {msg.message_type}")
+
+        return msg
+
     def orchestrate_round(self, round_number: int) -> RoundResult:
         """Requests argument from Pro, sends to Con, receives counter, logs round."""
         # This will be fully fleshed out in Phase 5.

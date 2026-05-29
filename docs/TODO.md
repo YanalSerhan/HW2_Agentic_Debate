@@ -685,7 +685,7 @@ debate-agents/
 
 ### 4.1 — Process Launch Architecture
 
-- [ ] `src/debate/debate/session.py` — DebateSession:
+- [x] `src/debate/debate/session.py` — DebateSession:
   - Launches `ProSubagent` and `ConSubagent` as separate OS processes using `multiprocessing.Process`
   - Creates two `IPCChannel` instances: `father_to_pro`, `father_to_con`
   - Passes channel references to child processes on spawn
@@ -693,7 +693,7 @@ debate-agents/
   - Manages process lifecycle: start, monitor, terminate
   - File ≤ 150 lines
 
-- [ ] `src/debate/debate/round_manager.py` — RoundManager:
+- [x] `src/debate/debate/round_manager.py` — RoundManager:
   - `RoundResult` dataclass: `round_number`, `pro_message`, `con_message`, `timestamp`
   - `RoundManager`: tracks round count, validates minimum rounds reached, stores history
   - `increment_round(self) -> int`
@@ -701,7 +701,7 @@ debate-agents/
   - `has_minimum_rounds(self) -> bool` (checks ≥ `MIN_ROUNDS`)
   - File ≤ 150 lines
 
-- [ ] `src/debate/debate/verdict.py` — Verdict:
+- [x] `src/debate/debate/verdict.py` — Verdict:
   ```python
   class Verdict(BaseModel):
       session_id: str
@@ -720,11 +720,11 @@ debate-agents/
 
 ### 4.2 — IPC Flow Validation
 
-- [ ] Implement routing table in `MasterAgent`: maps `AgentRole → IPCChannel`
-- [ ] Validate sender on every received message (reject messages from wrong sender)
-- [ ] Validate message type is appropriate for current debate phase
-- [ ] Log every IPC event: send, receive, timeout, error
-- [ ] Write integration tests:
+- [x] Implement routing table in `MasterAgent`: maps `AgentRole → IPCChannel`
+- [x] Validate sender on every received message (reject messages from wrong sender)
+- [x] Validate message type is appropriate for current debate phase
+- [x] Log every IPC event: send, receive, timeout, error
+- [x] Write integration tests:
   - `test_father_receives_from_pro` (mocked Pro process)
   - `test_father_forwards_to_con` (mocked Con process)
   - `test_sibling_direct_message_rejected`
@@ -732,12 +732,12 @@ debate-agents/
 
 ### 4.3 — JSON Protocol Enforcement
 
-- [ ] All IPC messages must be valid JSON (enforced by Pydantic on deserialization)
-- [ ] Implement `JSONProtocolValidator`:
+- [x] All IPC messages must be valid JSON (enforced by Pydantic on deserialization)
+- [x] Implement `JSONProtocolValidator`:
   - `validate_message(self, raw: str) -> DebateMessage`
   - Logs malformed messages before raising
   - Never crashes process on malformed message — returns `ERROR` message type
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_valid_json_passes_validation`
   - `test_malformed_json_returns_error_message`
   - `test_missing_required_field_raises`

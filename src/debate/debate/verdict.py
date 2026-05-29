@@ -1,14 +1,17 @@
-from pydantic import BaseModel
 from datetime import datetime
-from typing import List
+
+from pydantic import BaseModel
+
+from debate.constants import AgentRole
+
 
 class Verdict(BaseModel):
     session_id: str
-    winner: str
+    winner: AgentRole
     pro_score: float
     con_score: float
     reasoning: str
-    key_winning_arguments: List[str]
+    key_winning_arguments: list[str]
     round_count: int
     total_tokens_used: int
     total_cost_usd: float
