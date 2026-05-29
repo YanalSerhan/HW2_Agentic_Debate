@@ -2,7 +2,6 @@ import uuid
 from datetime import datetime, timezone
 
 from debate.agents.base_agent import BaseAgent
-from debate.agents.base_subagent import BaseSubagent
 from debate.constants import AgentRole, MessageType
 from debate.debate.round_manager import RoundResult
 from debate.debate.verdict import Verdict
@@ -52,23 +51,67 @@ class MasterAgent(BaseAgent):
         return msg
 
     def orchestrate_round(self, round_number: int) -> RoundResult:
-        """Requests argument from Pro, sends to Con, receives counter, logs round."""
-        # This will be fully fleshed out in Phase 5.
-        pass
+        """Requests argument from Pro, sends to Con, receives counter, logs round.
 
-    def request_argument(self, agent: BaseSubagent, context: list[DebateMessage]) -> DebateMessage:
-        """Requests an argument from the given agent."""
-        pass
-
-    def deliver_to_opponent(self, message: DebateMessage, recipient: BaseSubagent) -> DebateMessage:
-        """Forwards an argument to the opposing agent."""
-        pass
+        NOTE: The actual round loop lives in DebateSession.run().  This
+        method is kept for direct-call testing.
+        """
+        return RoundResult(
+            round_number=round_number,
+            pro_message="",
+            con_message="",
+            timestamp=datetime.now(timezone.utc),
+        )
 
     def deliver_verdict(self, transcript: list[RoundResult]) -> Verdict:
-        """Evaluates the full transcript and delivers a Verdict."""
-        pass
+        """Evaluate the full transcript and deliver a Verdict."""
+        scores = self._score_persuasion(transcript)
+        pro_score = scores[AgentRole.PRO]
+        con_score = scores[AgentRole.CON]
 
-    def _score_persuasion(self, messages: list[DebateMessage]) -> dict[AgentRole, float]:
-        """Calls API with full transcript, returns scores."""
-        # Hardcoded for Phase 3 to satisfy type hints
-        return {AgentRole.PRO: 85.0, AgentRole.CON: 80.0}
+        # Tiebreaker — ties are forbidden
+        if pro_score == con_score:
+            pro_score += 5.0  # rhetorical-edge tiebreaker
+
+        winner = AgentRole.PRO if pro_score > con_score else AgentRole.CON
+
+        # Pick top 3 winning arguments (simple: longest messages)
+        winning_msgs = []
+        for r in transcript:
+            msg = r.pro_message if winner == AgentRole.PRO else r.con_message
+            winning_msgs.append((len(msg), msg[:120]))
+        winning_msgs.sort(reverse=True)
+        top_args = [m[1] for m in winning_msgs[:3]]
+
+        return Verdict(
+            session_id=self._session_id,
+            winner=winner,
+            pro_score=pro_score,
+            con_score=con_score,
+            reasoning=(
+                f"After {len(transcript)} rounds the {winner.value} agent "
+                f"demonstrated stronger persuasive ability."
+            ),
+            key_winning_arguments=top_args,
+            round_count=len(transcript),
+            total_tokens_used=0,
+            total_cost_usd=0.0,
+            timestamp=datetime.now(timezone.utc),
+        )
+
+    def _score_persuasion(
+        self, transcript: list[RoundResult],
+    ) -> dict[AgentRole, float]:
+        """Score each side.  Phase 6 will replace this with LLM-based scoring."""
+        pro_total = 0.0
+        con_total = 0.0
+        for r in transcript:
+            pro_total += min(len(r.pro_message), 500) / 5.0
+            con_total += min(len(r.con_message), 500) / 5.0
+
+        # Normalise to 0-100
+        max_score = max(pro_total, con_total, 1.0)
+        return {
+            AgentRole.PRO: round(pro_total / max_score * 100, 2),
+            AgentRole.CON: round(con_total / max_score * 100, 2),
+        }

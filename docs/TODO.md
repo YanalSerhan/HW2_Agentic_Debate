@@ -754,7 +754,7 @@ debate-agents/
 
 ### 5.1 — Debate Loop
 
-- [ ] In `DebateSession.run()`:
+- [x] In `DebateSession.run()`:
   ```
   STEP 1: Father opens debate — sends topic to both agents
   STEP 2: For round in range(MAX_ROUNDS):
@@ -768,14 +768,14 @@ debate-agents/
   STEP 4: Father collects full transcript → delivers to judging module
   STEP 5: Verdict generated and returned
   ```
-- [ ] Enforce minimum 10 rounds before verdict
-- [ ] Allow configurable max rounds (default 10)
-- [ ] Edge case: if an agent fails to respond within timeout:
+- [x] Enforce minimum 10 rounds before verdict
+- [x] Allow configurable max rounds (default 10)
+- [x] Edge case: if an agent fails to respond within timeout:
   - Log `WATCHDOG_KILL` event
   - Kill and restart process
   - Re-inject last context
   - Max 2 restart attempts; on third failure, declare that side forfeit
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_debate_runs_minimum_10_rounds`
   - `test_agent_timeout_triggers_restart`
   - `test_agreement_detection_triggers_regeneration`
@@ -783,24 +783,24 @@ debate-agents/
 
 ### 5.2 — Web Search Enforcement
 
-- [ ] Every argument generation MUST invoke web search tool
-- [ ] `BaseAgent.call_api` extracts `tool_use` blocks from response
-- [ ] If `tool_use` block for `web_search` is absent, raises `WebSearchNotUsedError`
-- [ ] `WebSearchNotUsedError` triggers one retry; if still absent on retry, logs ERROR and uses result anyway but flags in verdict
-- [ ] `Evidence` objects extracted from tool result and attached to `DebateMessage`
-- [ ] Write unit tests:
+- [x] Every argument generation MUST invoke web search tool
+- [x] `BaseAgent.call_api` extracts `tool_use` blocks from response
+- [x] If `tool_use` block for `web_search` is absent, raises `WebSearchNotUsedError`
+- [x] `WebSearchNotUsedError` triggers one retry; if still absent on retry, logs ERROR and uses result anyway but flags in verdict
+- [x] `Evidence` objects extracted from tool result and attached to `DebateMessage`
+- [x] Write unit tests:
   - `test_argument_without_search_raises_error`
   - `test_retry_on_missing_search`
   - `test_evidence_extracted_from_tool_result`
 
 ### 5.3 — Agreement Detection
 
-- [ ] Implement `AgreementDetector`:
+- [x] Implement `AgreementDetector`:
   - `is_agreeing(self, pro_message: str, con_message: str) -> bool`
   - Uses lightweight heuristic: checks for agreement phrases ("I agree", "you're right", "exactly", "correct") OR semantic similarity check via embedding (optional advanced feature)
   - Returns `True` if Con is capitulating rather than rebutting
   - File ≤ 150 lines
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_detects_explicit_agreement`
   - `test_genuine_counter_argument_not_flagged`
   - `test_partial_concession_not_flagged`

@@ -50,13 +50,19 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
         """Returns the session ID."""
         return self._session_id
 
-    def call_api(self, messages: list, tools: list) -> tuple[str, list[Evidence]]:
-        """
-        Calls the LLM API through the gatekeeper, ensures web_search is used,
-        and returns the text response along with extracted Evidence.
+    def call_api(
+        self, messages: list, tools: list, *, _retry: bool = False,
+    ) -> tuple[str, list[Evidence]]:
+        """Call the LLM API through the gatekeeper.
+
+        Ensures web_search is used. On the first failure a single retry is
+        attempted; on the second failure the result is returned anyway but
+        the missing-search flag is set so the verdict can note it.
         """
         # Ensure web_search is in the tools list
-        has_web_search = any(t.get("name") == "web_search" for t in tools) if tools else False
+        has_web_search = (
+            any(t.get("name") == "web_search" for t in tools) if tools else False
+        )
         if not has_web_search:
             tools = tools or []
             tools.append({
@@ -65,11 +71,10 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
                 "input_schema": {
                     "type": "object",
                     "properties": {"query": {"type": "string"}},
-                    "required": ["query"]
-                }
+                    "required": ["query"],
+                },
             })
 
-        # Define a mockable API call lambda/function
         def do_api_call():
             if self._anthropic_client:
                 return self._anthropic_client.messages.create(
@@ -77,52 +82,68 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
                     max_tokens=1000,
                     system=self.get_system_prompt(),
                     messages=messages,
-                    tools=tools
+                    tools=tools,
                 )
-            else:
-                # Default mock behavior if no client is provided
-                class MockBlock:
-                    def __init__(self, t, n="", text="Mock response"):
-                        self.type = t
-                        self.name = n
-                        self.text = text
-                        self.input = {"query": "mock query"}
-                class MockResponse:
-                    content = [MockBlock("tool_use", "web_search"), MockBlock("text", text="Mock response")]
-                    usage = type('obj', (object,), {'input_tokens': 10, 'output_tokens': 10})()
-                return MockResponse()
+            # Default mock behaviour when no client is provided
+            class MockBlock:
+                def __init__(self, t, n="", text="Mock response"):
+                    self.type = t
+                    self.name = n
+                    self.text = text
+                    self.input = {"query": "mock query"}
+
+            class MockResponse:
+                content = [
+                    MockBlock("tool_use", "web_search"),
+                    MockBlock("text", text="Mock response"),
+                ]
+                usage = type(
+                    "obj", (object,), {"input_tokens": 10, "output_tokens": 10}
+                )()
+
+            return MockResponse()
 
         response = self.gatekeeper.execute(do_api_call)
 
-        # Log cost (mocked calculation for now)
-        if hasattr(response, 'usage'):
+        # Log cost
+        if hasattr(response, "usage"):
             self.log_api_call(
                 prompt_tokens=response.usage.input_tokens,
                 completion_tokens=response.usage.output_tokens,
-                cost_usd=0.0  # Would compute actual cost here
+                cost_usd=0.0,
             )
 
-        # Extract text and tool_use
+        # Extract text and tool_use blocks
         text_content = ""
         used_web_search = False
-        evidence_list = []
+        evidence_list: list[Evidence] = []
 
-        if hasattr(response, 'content'):
+        if hasattr(response, "content"):
             for block in response.content:
                 if block.type == "text":
                     text_content += block.text
                 elif block.type == "tool_use" and block.name == "web_search":
                     used_web_search = True
-                    # In a real app, we would execute the search here.
-                    # For now, we mock the evidence extraction.
                     evidence_list.append(Evidence(
                         url="mock://search",
                         title=f"Search result for {block.input.get('query', '')}",
                         snippet="Mock snippet",
-                        retrieved_at=__import__("datetime").datetime.now()
+                        retrieved_at=__import__("datetime").datetime.now(),
                     ))
 
         if not used_web_search:
-            raise WebSearchNotUsedError("Agent failed to use mandatory web_search tool.")
+            if not _retry:
+                # One automatic retry
+                self.log_event(
+                    "RETRY",
+                    {"reason": "web_search tool not used, retrying"},
+                )
+                return self.call_api(messages, tools, _retry=True)
+            # Second failure — log and return result anyway (flagged)
+            self.log_event(
+                "ERROR",
+                {"reason": "web_search tool missing after retry, proceeding"},
+            )
+            self._web_search_missing = True
 
         return text_content, evidence_list

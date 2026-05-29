@@ -1,20 +1,36 @@
+"""DebateSession — launches child processes and runs the debate loop."""
+import logging
 import multiprocessing
-import time
 import uuid
+from datetime import datetime, timezone
 
 from debate.agents.con_subagent import ConSubagent
 from debate.agents.master_agent import MasterAgent
 from debate.agents.pro_subagent import ProSubagent
-from debate.constants import AgentRole
+from debate.constants import MIN_ROUNDS, AgentRole, MessageType
+from debate.debate.agreement_detector import AgreementDetector
 from debate.debate.round_manager import RoundManager, RoundResult
 from debate.debate.verdict import Verdict
-from debate.ipc.ipc_channel import IPCChannel
+from debate.ipc.ipc_channel import IPCChannel, IPCTimeoutError
+from debate.ipc.message import DebateMessage
 from debate.shared.config import ConfigManager
 from debate.shared.gatekeeper import ApiGatekeeper
 
+logger = logging.getLogger(__name__)
 
-def _subagent_worker(role: AgentRole, session_id: str, position: str, config: ConfigManager,
-                     gatekeeper: ApiGatekeeper, channel_receive: IPCChannel, channel_send: IPCChannel):
+MAX_AGREEMENT_RETRIES = 2
+MAX_RESTART_ATTEMPTS = 2
+
+
+def _subagent_worker(
+    role: AgentRole,
+    session_id: str,
+    position: str,
+    config: ConfigManager,
+    gatekeeper: ApiGatekeeper,
+    channel_receive: IPCChannel,
+    channel_send: IPCChannel,
+):
     """Entry point for subagent processes."""
     if role == AgentRole.PRO:
         agent = ProSubagent(session_id, position)
@@ -24,31 +40,36 @@ def _subagent_worker(role: AgentRole, session_id: str, position: str, config: Co
     agent.initialize(config, gatekeeper)
     agent.set_ipc_channel(AgentRole.FATHER, channel_send)
 
-    # Simple event loop for Phase 4 validation
     while True:
         try:
-            msg = channel_receive.receive(timeout=1.0)
-            # Process msg and send reply (dummy logic for now)
+            msg = channel_receive.receive(timeout=5.0)
             reply = agent.process_message(msg)
             if reply:
                 agent.send_to_father(reply)
         except Exception:
-            pass # Timeout or other error
+            pass  # timeout — loop again
+
 
 class DebateSession:
     """Manages the lifecycle of a debate session."""
 
-    def __init__(self, topic: str, config: ConfigManager, gatekeeper: ApiGatekeeper):
+    def __init__(
+        self,
+        topic: str,
+        config: ConfigManager,
+        gatekeeper: ApiGatekeeper,
+        max_rounds: int = MIN_ROUNDS,
+    ):
         self.session_id = str(uuid.uuid4())
         self.topic = topic
         self.config = config
         self.gatekeeper = gatekeeper
+        self.max_rounds = max(max_rounds, MIN_ROUNDS)
 
-        self.pro_process = None
-        self.con_process = None
+        self.pro_process: multiprocessing.Process | None = None
+        self.con_process: multiprocessing.Process | None = None
 
-        # Channels
-        # Father sends to child through father_to_child, child receives from it
+        # Bidirectional channels — two per child
         self.father_to_pro = IPCChannel()
         self.pro_to_father = IPCChannel()
         self.father_to_con = IPCChannel()
@@ -56,58 +77,244 @@ class DebateSession:
 
         self.father = MasterAgent(self.session_id)
         self.father.initialize(config, gatekeeper)
-        self.father.set_ipc_channel(AgentRole.PRO, self.father_to_pro) # Not exactly right, master sends on father_to_pro but receives on pro_to_father.
-        # Actually, standard IPCChannel has only one queue. So we need two channels per child.
-        # Let's fix this in IPCMixin logic later or just use two channels.
-        # For IPCMixin send_to_child(PRO), it uses self._ipc_channels[PRO].
-        # So father's self._ipc_channels[PRO] = father_to_pro (for sending)
-        # But for receiving from PRO, father uses pro_to_father.receive()
+        self.father.set_ipc_send_channel(AgentRole.PRO, self.father_to_pro)
+        self.father.set_ipc_receive_channel(AgentRole.PRO, self.pro_to_father)
+        self.father.set_ipc_send_channel(AgentRole.CON, self.father_to_con)
+        self.father.set_ipc_receive_channel(AgentRole.CON, self.con_to_father)
 
         self.round_manager = RoundManager()
+        self.agreement_detector = AgreementDetector()
+
+    # ---- process lifecycle ----
 
     def start_processes(self):
         """Starts the subagent processes."""
         self.pro_process = multiprocessing.Process(
             target=_subagent_worker,
-            args=(AgentRole.PRO, self.session_id, f"Support: {self.topic}", self.config, self.gatekeeper,
-                  self.father_to_pro, self.pro_to_father),
-            daemon=True
+            args=(
+                AgentRole.PRO, self.session_id,
+                f"Support: {self.topic}", self.config, self.gatekeeper,
+                self.father_to_pro, self.pro_to_father,
+            ),
+            daemon=True,
         )
         self.con_process = multiprocessing.Process(
             target=_subagent_worker,
-            args=(AgentRole.CON, self.session_id, f"Oppose: {self.topic}", self.config, self.gatekeeper,
-                  self.father_to_con, self.con_to_father),
-            daemon=True
+            args=(
+                AgentRole.CON, self.session_id,
+                f"Oppose: {self.topic}", self.config, self.gatekeeper,
+                self.father_to_con, self.con_to_father,
+            ),
+            daemon=True,
         )
         self.pro_process.start()
         self.con_process.start()
-
-        # Start watchdog on master
         self.father.start_watchdog(timeout=30.0, process=self.pro_process)
 
     def terminate_processes(self):
         """Cleanly terminates the subagent processes."""
-        if self.pro_process and self.pro_process.is_alive():
-            self.pro_process.terminate()
-            self.pro_process.join()
-        if self.con_process and self.con_process.is_alive():
-            self.con_process.terminate()
-            self.con_process.join()
+        for proc in (self.pro_process, self.con_process):
+            if proc and proc.is_alive():
+                proc.terminate()
+                proc.join()
         self.father.stop_watchdog()
 
+    def _restart_child(self, role: AgentRole) -> bool:
+        """Kill and restart one child process.  Returns False on third failure."""
+        restart_key = f"_restart_count_{role.value}"
+        count = getattr(self, restart_key, 0)
+        if count >= MAX_RESTART_ATTEMPTS:
+            return False
+
+        if role == AgentRole.PRO:
+            proc = self.pro_process
+            ch_send, ch_recv = self.father_to_pro, self.pro_to_father
+            position = f"Support: {self.topic}"
+        else:
+            proc = self.con_process
+            ch_send, ch_recv = self.father_to_con, self.con_to_father
+            position = f"Oppose: {self.topic}"
+
+        if proc and proc.is_alive():
+            proc.terminate()
+            proc.join()
+
+        new_proc = multiprocessing.Process(
+            target=_subagent_worker,
+            args=(role, self.session_id, position,
+                  self.config, self.gatekeeper, ch_send, ch_recv),
+            daemon=True,
+        )
+        new_proc.start()
+
+        if role == AgentRole.PRO:
+            self.pro_process = new_proc
+        else:
+            self.con_process = new_proc
+
+        setattr(self, restart_key, count + 1)
+        self.father.log_event("WATCHDOG_KILL", {"agent": role.value, "attempt": count + 1})
+        return True
+
+    # ---- debate loop ----
+
+    def _send_topic_to_agent(self, role: AgentRole, round_number: int):
+        """Sends the opening topic to an agent."""
+        msg = DebateMessage(
+            message_id=str(uuid.uuid4()),
+            session_id=self.session_id,
+            sender=AgentRole.FATHER,
+            recipient=role,
+            message_type=MessageType.ARGUMENT,
+            round_number=round_number,
+            content=f"Debate topic: {self.topic}",
+            evidence=[],
+            timestamp=datetime.now(timezone.utc),
+        )
+        self.father.send_to_child(role, msg)
+
+    def _request_from_child(
+        self, role: AgentRole, expected_type: MessageType, round_number: int,
+        timeout: float = 30.0,
+    ) -> DebateMessage | None:
+        """Try to receive from *role*; restart on timeout up to limit."""
+        try:
+            return self.father.receive_from_child(role, expected_type, timeout=timeout)
+        except (IPCTimeoutError, ValueError):
+            self.father.log_event("TIMEOUT", {"agent": role.value, "round": round_number})
+            if self._restart_child(role):
+                self._send_topic_to_agent(role, round_number)
+                try:
+                    return self.father.receive_from_child(role, expected_type, timeout=timeout)
+                except Exception:
+                    pass
+            return None
+
     def run(self) -> Verdict:
-        """Runs the debate."""
+        """Execute the full debate loop and return a Verdict."""
         try:
             self.start_processes()
-            # In Phase 5, this will loop rounds. For now just dummy logic.
-            time.sleep(1)
-            return Verdict(
-                session_id=self.session_id, winner=AgentRole.PRO, pro_score=85.0, con_score=80.0,
-                reasoning="Mock verdict", key_winning_arguments=[], round_count=1,
-                total_tokens_used=100, total_cost_usd=0.0, timestamp=__import__("datetime").datetime.now()
-            )
+
+            # STEP 1 — send topic to both agents
+            self._send_topic_to_agent(AgentRole.PRO, round_number=1)
+            self._send_topic_to_agent(AgentRole.CON, round_number=1)
+
+            for rnd in range(1, self.max_rounds + 1):
+                self.father._current_round = rnd
+
+                # 2a — request argument from Pro
+                pro_msg = self._request_from_child(
+                    AgentRole.PRO, MessageType.ARGUMENT, rnd, timeout=30.0,
+                )
+                if pro_msg is None:
+                    # Forfeit
+                    return self._forfeit_verdict(AgentRole.CON, rnd)
+
+                # 2b — forward Pro's argument to Con
+                fwd = DebateMessage(
+                    message_id=str(uuid.uuid4()),
+                    session_id=self.session_id,
+                    sender=AgentRole.FATHER,
+                    recipient=AgentRole.CON,
+                    message_type=MessageType.ARGUMENT,
+                    round_number=rnd,
+                    content=pro_msg.content,
+                    evidence=pro_msg.evidence,
+                    timestamp=datetime.now(timezone.utc),
+                )
+                self.father.send_to_child(AgentRole.CON, fwd)
+
+                # 2c — receive counter-argument from Con (with agreement check)
+                con_msg = self._receive_con_with_agreement_check(pro_msg, rnd)
+                if con_msg is None:
+                    return self._forfeit_verdict(AgentRole.PRO, rnd)
+
+                # 2d — log round result
+                result = RoundResult(
+                    round_number=rnd,
+                    pro_message=pro_msg.content,
+                    con_message=con_msg.content,
+                    timestamp=datetime.now(timezone.utc),
+                )
+                self.round_manager.add_round_result(result)
+                self.father.log_event("ROUND_COMPLETE", {"round": rnd})
+
+                # 2e — ping watchdog
+                self.father.ping_watchdog()
+
+                # Prepare next round — send Con's counter back to Pro
+                if rnd < self.max_rounds:
+                    next_msg = DebateMessage(
+                        message_id=str(uuid.uuid4()),
+                        session_id=self.session_id,
+                        sender=AgentRole.FATHER,
+                        recipient=AgentRole.PRO,
+                        message_type=MessageType.COUNTER_ARGUMENT,
+                        round_number=rnd + 1,
+                        content=con_msg.content,
+                        evidence=con_msg.evidence,
+                        timestamp=datetime.now(timezone.utc),
+                    )
+                    self.father.send_to_child(AgentRole.PRO, next_msg)
+
+            # STEP 4/5 — verdict
+            transcript = self.round_manager.get_transcript()
+            return self.father.deliver_verdict(transcript)
+
         finally:
             self.terminate_processes()
+
+    def _receive_con_with_agreement_check(
+        self, pro_msg: DebateMessage, rnd: int,
+    ) -> DebateMessage | None:
+        """Receive from Con; if it agrees with Pro, re-request up to 2 times."""
+        for attempt in range(1 + MAX_AGREEMENT_RETRIES):
+            con_msg = self._request_from_child(
+                AgentRole.CON, MessageType.COUNTER_ARGUMENT, rnd,
+            )
+            if con_msg is None:
+                return None
+
+            if not self.agreement_detector.is_agreeing(pro_msg.content, con_msg.content):
+                return con_msg
+
+            self.father.log_event(
+                "AGREEMENT_DETECTED",
+                {"round": rnd, "attempt": attempt + 1},
+            )
+            if attempt < MAX_AGREEMENT_RETRIES:
+                # Re-send Pro's message to Con to trigger regeneration
+                resend = DebateMessage(
+                    message_id=str(uuid.uuid4()),
+                    session_id=self.session_id,
+                    sender=AgentRole.FATHER,
+                    recipient=AgentRole.CON,
+                    message_type=MessageType.ARGUMENT,
+                    round_number=rnd,
+                    content=pro_msg.content,
+                    evidence=pro_msg.evidence,
+                    timestamp=datetime.now(timezone.utc),
+                )
+                self.father.send_to_child(AgentRole.CON, resend)
+
+        # After max retries, use the last response anyway
+        return con_msg
+
+    def _forfeit_verdict(self, winner: AgentRole, rnd: int) -> Verdict:
+        """Create a verdict when one side forfeits due to repeated failures."""
+        loser = AgentRole.CON if winner == AgentRole.PRO else AgentRole.PRO
+        return Verdict(
+            session_id=self.session_id,
+            winner=winner,
+            pro_score=100.0 if winner == AgentRole.PRO else 0.0,
+            con_score=100.0 if winner == AgentRole.CON else 0.0,
+            reasoning=f"{loser.value} forfeited after repeated failures in round {rnd}.",
+            key_winning_arguments=["Opponent forfeited"],
+            round_count=rnd,
+            total_tokens_used=0,
+            total_cost_usd=0.0,
+            timestamp=datetime.now(timezone.utc),
+        )
 
     def get_transcript(self) -> list[RoundResult]:
         return self.round_manager.get_transcript()
