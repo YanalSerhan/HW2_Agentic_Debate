@@ -53,7 +53,7 @@ class BaseSubagent(BaseAgent):
         prompt = self._build_argument_prompt(round_number, history)
 
         messages = [{"role": "user", "content": prompt}]
-        text_content, evidence_list = self.call_api(messages, tools=[])
+        text_content, evidence_list, usage_dict = self.call_api(messages, tools=[])
 
         self._check_agreement(text_content)
 
@@ -66,14 +66,15 @@ class BaseSubagent(BaseAgent):
             round_number=round_number,
             content=text_content,
             evidence=evidence_list,
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
+            metadata={"usage": usage_dict}
         )
 
     def generate_counter_argument(self, opponent_message: DebateMessage, round_number: int) -> DebateMessage:
         prompt = self._build_counter_argument_prompt(opponent_message, round_number)
 
         messages = [{"role": "user", "content": prompt}]
-        text_content, evidence_list = self.call_api(messages, tools=[])
+        text_content, evidence_list, usage_dict = self.call_api(messages, tools=[])
 
         self._check_agreement(text_content)
 
@@ -86,5 +87,6 @@ class BaseSubagent(BaseAgent):
             round_number=round_number,
             content=text_content,
             evidence=evidence_list,
-            timestamp=datetime.now(timezone.utc)
+            timestamp=datetime.now(timezone.utc),
+            metadata={"usage": usage_dict}
         )

@@ -35,7 +35,7 @@ def test_abstract_methods_enforced():
 
 def test_call_api_routes_through_gatekeeper():
     agent, gatekeeper = _make_agent()
-    text, evidence = agent.call_api([], [])
+    text, evidence, usage = agent.call_api([], [])
     gatekeeper.execute.assert_called_once()
     assert text == "Mock response"
     assert len(evidence) == 1
@@ -56,7 +56,7 @@ def test_retry_on_missing_search():
     client.messages.create.return_value = MockResponseNoTools()
     agent, _ = _make_agent(client=client)
 
-    text, evidence = agent.call_api([], [])
+    text, evidence, usage = agent.call_api([], [])
 
     # Should have been called twice (original + retry)
     assert client.messages.create.call_count == 2
@@ -68,7 +68,7 @@ def test_retry_on_missing_search():
 
 def test_evidence_extracted_from_tool_result():
     agent, _ = _make_agent()
-    text, evidence = agent.call_api([], [])
+    text, evidence, usage = agent.call_api([], [])
     assert len(evidence) == 1
     assert evidence[0].url == "mock://search"
     assert "mock query" in evidence[0].title

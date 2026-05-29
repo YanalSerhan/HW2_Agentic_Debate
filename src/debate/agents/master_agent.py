@@ -5,6 +5,7 @@ from debate.agents.base_agent import BaseAgent
 from debate.constants import AgentRole, MessageType
 from debate.debate.round_manager import RoundResult
 from debate.debate.verdict import Verdict
+from debate.debate.verdict_generator import VerdictGenerator
 from debate.ipc.message import DebateMessage
 
 
@@ -63,55 +64,7 @@ class MasterAgent(BaseAgent):
             timestamp=datetime.now(timezone.utc),
         )
 
-    def deliver_verdict(self, transcript: list[RoundResult]) -> Verdict:
+    def deliver_verdict(self, transcript: list[RoundResult], total_tokens: int = 0, total_cost: float = 0.0) -> Verdict:
         """Evaluate the full transcript and deliver a Verdict."""
-        scores = self._score_persuasion(transcript)
-        pro_score = scores[AgentRole.PRO]
-        con_score = scores[AgentRole.CON]
-
-        # Tiebreaker — ties are forbidden
-        if pro_score == con_score:
-            pro_score += 5.0  # rhetorical-edge tiebreaker
-
-        winner = AgentRole.PRO if pro_score > con_score else AgentRole.CON
-
-        # Pick top 3 winning arguments (simple: longest messages)
-        winning_msgs = []
-        for r in transcript:
-            msg = r.pro_message if winner == AgentRole.PRO else r.con_message
-            winning_msgs.append((len(msg), msg[:120]))
-        winning_msgs.sort(reverse=True)
-        top_args = [m[1] for m in winning_msgs[:3]]
-
-        return Verdict(
-            session_id=self._session_id,
-            winner=winner,
-            pro_score=pro_score,
-            con_score=con_score,
-            reasoning=(
-                f"After {len(transcript)} rounds the {winner.value} agent "
-                f"demonstrated stronger persuasive ability."
-            ),
-            key_winning_arguments=top_args,
-            round_count=len(transcript),
-            total_tokens_used=0,
-            total_cost_usd=0.0,
-            timestamp=datetime.now(timezone.utc),
-        )
-
-    def _score_persuasion(
-        self, transcript: list[RoundResult],
-    ) -> dict[AgentRole, float]:
-        """Score each side.  Phase 6 will replace this with LLM-based scoring."""
-        pro_total = 0.0
-        con_total = 0.0
-        for r in transcript:
-            pro_total += min(len(r.pro_message), 500) / 5.0
-            con_total += min(len(r.con_message), 500) / 5.0
-
-        # Normalise to 0-100
-        max_score = max(pro_total, con_total, 1.0)
-        return {
-            AgentRole.PRO: round(pro_total / max_score * 100, 2),
-            AgentRole.CON: round(con_total / max_score * 100, 2),
-        }
+        generator = VerdictGenerator(self)
+        return generator.generate_verdict(transcript, self._session_id, total_tokens, total_cost)

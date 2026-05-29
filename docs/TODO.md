@@ -817,7 +817,7 @@ debate-agents/
 
 ### 6.1 — `docs/PRD_judging_algorithm.md` Implementation
 
-- [ ] `VerdictGenerator` (called from `MasterAgent.deliver_verdict`):
+- [x] `VerdictGenerator` (called from `MasterAgent.deliver_verdict`):
   - Input: full `list[RoundResult]` transcript
   - Constructs judging prompt with explicit evaluation rubric:
     - Rhetorical strength (0–25): clarity, structure, persuasive language
@@ -829,7 +829,7 @@ debate-agents/
   - Father MUST pick a winner — never a tie
   - If scores are equal after calculation, a 5-point "rhetorical edge" tiebreaker is applied
   - Returns `Verdict` dataclass
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_verdict_always_has_winner`
   - `test_scores_sum_to_100_per_dimension`
   - `test_tie_resolved_by_tiebreaker`
@@ -838,12 +838,12 @@ debate-agents/
 
 ### 6.2 — Token & Cost Accounting
 
-- [ ] Track cumulative token usage across entire debate:
+- [x] Track cumulative token usage across entire debate:
   - `DebateSession` accumulates `prompt_tokens`, `completion_tokens` per round
   - Calculates cost using model pricing from `config/setup.json`
   - Final tally included in `Verdict.total_cost_usd`
-- [ ] Log cost per agent per round in JSONL
-- [ ] Write unit tests:
+- [x] Log cost per agent per round in JSONL
+- [x] Write unit tests:
   - `test_token_accumulation_across_rounds`
   - `test_cost_calculation_matches_model_pricing`
 

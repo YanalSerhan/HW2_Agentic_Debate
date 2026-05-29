@@ -85,6 +85,13 @@ class DebateSession:
         self.round_manager = RoundManager()
         self.agreement_detector = AgreementDetector()
 
+        self.total_tokens = 0
+        self.total_cost = 0.0
+        
+        pricing = self.config.get("pricing", {})
+        self.input_cost_per_m = pricing.get("input_token_cost_per_million", 3.0)
+        self.output_cost_per_m = pricing.get("output_token_cost_per_million", 15.0)
+
     # ---- process lifecycle ----
 
     def start_processes(self):
@@ -229,7 +236,17 @@ class DebateSession:
                 if con_msg is None:
                     return self._forfeit_verdict(AgentRole.PRO, rnd)
 
-                # 2d — log round result
+                # 2d — log round result and calculate cost
+                pro_usage = pro_msg.metadata.get("usage", {})
+                con_usage = con_msg.metadata.get("usage", {})
+                
+                round_input_tokens = pro_usage.get("input_tokens", 0) + con_usage.get("input_tokens", 0)
+                round_output_tokens = pro_usage.get("output_tokens", 0) + con_usage.get("output_tokens", 0)
+                self.total_tokens += round_input_tokens + round_output_tokens
+                
+                round_cost = (round_input_tokens / 1_000_000 * self.input_cost_per_m) + (round_output_tokens / 1_000_000 * self.output_cost_per_m)
+                self.total_cost += round_cost
+                
                 result = RoundResult(
                     round_number=rnd,
                     pro_message=pro_msg.content,
@@ -237,7 +254,13 @@ class DebateSession:
                     timestamp=datetime.now(timezone.utc),
                 )
                 self.round_manager.add_round_result(result)
-                self.father.log_event("ROUND_COMPLETE", {"round": rnd})
+                
+                self.father.log_event("ROUND_COMPLETE", {
+                    "round": rnd,
+                    "input_tokens": round_input_tokens,
+                    "output_tokens": round_output_tokens,
+                    "cost": round_cost
+                })
 
                 # 2e — ping watchdog
                 self.father.ping_watchdog()
@@ -259,7 +282,11 @@ class DebateSession:
 
             # STEP 4/5 — verdict
             transcript = self.round_manager.get_transcript()
-            return self.father.deliver_verdict(transcript)
+            return self.father.deliver_verdict(
+                transcript, 
+                total_tokens=self.total_tokens, 
+                total_cost=self.total_cost
+            )
 
         finally:
             self.terminate_processes()
@@ -309,10 +336,10 @@ class DebateSession:
             pro_score=100.0 if winner == AgentRole.PRO else 0.0,
             con_score=100.0 if winner == AgentRole.CON else 0.0,
             reasoning=f"{loser.value} forfeited after repeated failures in round {rnd}.",
-            key_winning_arguments=["Opponent forfeited"],
+            key_winning_arguments=["Opponent forfeited", "Forfeit", "Timeout"],
             round_count=rnd,
-            total_tokens_used=0,
-            total_cost_usd=0.0,
+            total_tokens_used=self.total_tokens,
+            total_cost_usd=self.total_cost,
             timestamp=datetime.now(timezone.utc),
         )
 

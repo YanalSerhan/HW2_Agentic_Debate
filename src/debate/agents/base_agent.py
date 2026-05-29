@@ -52,7 +52,7 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
 
     def call_api(
         self, messages: list, tools: list, *, _retry: bool = False,
-    ) -> tuple[str, list[Evidence]]:
+    ) -> tuple[str, list[Evidence], dict]:
         """Call the LLM API through the gatekeeper.
 
         Ensures web_search is used. On the first failure a single retry is
@@ -131,6 +131,12 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
                         retrieved_at=__import__("datetime").datetime.now(),
                     ))
 
+        # Keep track of usage
+        usage_dict = {"input_tokens": 0, "output_tokens": 0}
+        if hasattr(response, "usage"):
+            usage_dict["input_tokens"] = response.usage.input_tokens
+            usage_dict["output_tokens"] = response.usage.output_tokens
+
         if not used_web_search:
             if not _retry:
                 # One automatic retry
@@ -146,4 +152,4 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
             )
             self._web_search_missing = True
 
-        return text_content, evidence_list
+        return text_content, evidence_list, usage_dict

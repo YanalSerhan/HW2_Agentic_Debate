@@ -5,5 +5,9 @@
   "timeout_seconds": 30,
   "debate_language": "english",
   "min_argument_words": 50,
-  "max_argument_words": 300
+  "max_argument_words": 300,
+  "pricing": {
+    "input_token_cost_per_million": 3.0,
+    "output_token_cost_per_million": 15.0
+  }
 }
