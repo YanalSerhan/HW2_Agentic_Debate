@@ -1,0 +1,1 @@
+"""DebateMessage dataclass + schema."""

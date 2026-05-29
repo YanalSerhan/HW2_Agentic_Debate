@@ -1,0 +1,9 @@
+{
+  "version": "1.00",
+  "model": "claude-sonnet-4-20250514",
+  "max_rounds": 10,
+  "timeout_seconds": 30,
+  "debate_language": "english",
+  "min_argument_words": 50,
+  "max_argument_words": 300
+}

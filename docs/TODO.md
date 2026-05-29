@@ -314,23 +314,23 @@ debate-agents/
 └── .gitignore
 ```
 
-- [ ] Create all directories with `__init__.py` files
-- [ ] Create all placeholder `.py` files with module docstrings
-- [ ] Verify directory tree matches spec above
+- [x] Create all directories with `__init__.py` files
+- [x] Create all placeholder `.py` files with module docstrings
+- [x] Verify directory tree matches spec above
 
 ### 1.2 — `pyproject.toml` Configuration
 
-- [ ] Set `[project]` metadata: name, version (1.00), description, authors, requires-python = ">=3.10"
-- [ ] Set `[project.dependencies]`:
+- [x] Set `[project]` metadata: name, version (1.00), description, authors, requires-python = ">=3.10"
+- [x] Set `[project.dependencies]`:
   - `anthropic>=0.49.0`
   - `python-dotenv>=1.0.0`
   - `pydantic>=2.0.0` (for JSON schema validation)
   - `rich>=13.0.0` (for terminal output)
   - `typer>=0.12.0` (for CLI)
-- [ ] Set `[project.optional-dependencies]`:
+- [x] Set `[project.optional-dependencies]`:
   - `dev = ["pytest>=8.0", "pytest-cov>=5.0", "pytest-asyncio>=0.23", "ruff>=0.4.0", "pytest-mock>=3.14"]`
-- [ ] Set `[project.scripts]`: `debate = "debate.sdk.sdk:main"`
-- [ ] Configure `[tool.ruff]`:
+- [x] Set `[project.scripts]`: `debate = "debate.sdk.sdk:main"`
+- [x] Configure `[tool.ruff]`:
   ```toml
   [tool.ruff]
   line-length = 100
@@ -339,25 +339,25 @@ debate-agents/
   select = ["E","F","W","I","N","UP","B","C4","SIM"]
   ignore = ["E501"]
   ```
-- [ ] Configure `[tool.pytest.ini_options]`:
+- [x] Configure `[tool.pytest.ini_options]`:
   - `testpaths = ["tests"]`
   - `asyncio_mode = "auto"`
-- [ ] Configure `[tool.coverage.run]`:
+- [x] Configure `[tool.coverage.run]`:
   - `source = ["src"]`
   - `omit = ["src/main.py", "*/tests/*"]`
-- [ ] Configure `[tool.coverage.report]`:
+- [x] Configure `[tool.coverage.report]`:
   - `fail_under = 85`
-- [ ] Run `uv sync` and verify clean install
+- [x] Run `uv sync` and verify clean install
 
 ### 1.3 — `.gitignore`
 
-- [ ] Add: `.env`, `__pycache__/`, `*.pyc`, `.pytest_cache/`, `*.egg-info/`, `dist/`, `.coverage`, `htmlcov/`, `logs/`, `results/*.json`, `.venv/`, `uv.lock` (do NOT git-ignore lock file — it must be committed)
-- [ ] **Correction**: keep `uv.lock` tracked (it's a deterministic lockfile, not a secret)
-- [ ] Add `logs/` to `.gitignore` (runtime artifacts)
+- [x] Add: `.env`, `__pycache__/`, `*.pyc`, `.pytest_cache/`, `*.egg-info/`, `dist/`, `.coverage`, `htmlcov/`, `logs/`, `results/*.json`, `.venv/`, `uv.lock` (do NOT git-ignore lock file — it must be committed)
+- [x] **Correction**: keep `uv.lock` tracked (it's a deterministic lockfile, not a secret)
+- [x] Add `logs/` to `.gitignore` (runtime artifacts)
 
 ### 1.4 — `.env.example`
 
-- [ ] Create with placeholder values:
+- [x] Create with placeholder values:
   ```
   ANTHROPIC_API_KEY=your_api_key_here
   DEBATE_MODEL=claude-sonnet-4-20250514
@@ -365,24 +365,24 @@ debate-agents/
   DEBATE_MAX_ROUNDS=10
   DEBATE_TIMEOUT_SECONDS=30
   ```
-- [ ] Confirm `.env` is in `.gitignore` and never committed
+- [x] Confirm `.env` is in `.gitignore` and never committed
 
 ### 1.5 — `src/debate/shared/version.py`
 
-- [ ] Define `VERSION = "1.00"`
-- [ ] Define `get_version() -> str` function
-- [ ] Write test: `test_version_format` (matches `\d+\.\d+`)
+- [x] Define `VERSION = "1.00"`
+- [x] Define `get_version() -> str` function
+- [x] Write test: `test_version_format` (matches `\d+\.\d+`)
 
 ### 1.6 — `src/debate/constants.py`
 
-- [ ] Define all immutable constants using `Enum` where appropriate:
+- [x] Define all immutable constants using `Enum` where appropriate:
   - `AgentRole(Enum)`: FATHER, PRO, CON
   - `MessageType(Enum)`: ARGUMENT, COUNTER_ARGUMENT, SEARCH_RESULT, VERDICT_REQUEST, VERDICT, PING, PONG, ERROR
   - `DebateStatus(Enum)`: PENDING, IN_PROGRESS, JUDGING, COMPLETE, FAILED
   - `MIN_ROUNDS = 10`
   - `MAX_FILE_LINES = 500`
   - `MAX_LOG_FILES = 20`
-- [ ] Zero hardcoded strings elsewhere — import from here
+- [x] Zero hardcoded strings elsewhere — import from here
 
 ---
 
