@@ -9,21 +9,26 @@ from debate.shared.gatekeeper import ApiGatekeeper, QueueStatus
 class DebateSDK:
     """Main entry point for the Multi-Agent AI Debate System."""
 
-    def __init__(self, topic: str, config_path: str = "config/"):
+    def __init__(self, topic: str, config_path: str = "config/", max_rounds: int = 10):
         self.topic = topic
+        self.max_rounds = max_rounds
         self.config_manager = ConfigManager(config_dir=config_path)
         self.gatekeeper = ApiGatekeeper(self.config_manager.get_rate_limit_config())
+        self.on_round = None
 
         # Late import to allow Phase 2 tests to pass without fully implementing Phase 4
         from debate.debate.session import DebateSession
         self.session = DebateSession(
             topic=self.topic,
             config=self.config_manager,
-            gatekeeper=self.gatekeeper
+            gatekeeper=self.gatekeeper,
+            max_rounds=self.max_rounds,
         )
 
     def run_debate(self) -> Any:
         """Orchestrates the full debate and returns a structured verdict."""
+        if hasattr(self, "on_round"):
+            self.session.on_round = self.on_round
         return self.session.run()
 
     def get_transcript(self) -> list[Any]:

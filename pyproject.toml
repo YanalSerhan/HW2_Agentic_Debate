@@ -24,7 +24,7 @@ dev = [
 ]
 
 [project.scripts]
-debate = "debate.sdk.sdk:main"
+debate = "debate.cli:main"
 
 [tool.ruff]
 line-length = 100

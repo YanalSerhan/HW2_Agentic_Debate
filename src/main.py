@@ -1,6 +1,6 @@
 """Entry point (imports SDK, runs CLI)."""
 
-from debate.sdk.sdk import main
+from debate.cli import app
 
 if __name__ == "__main__":
-    main()
+    app()

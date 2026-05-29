@@ -72,7 +72,8 @@ def test_sdk_initializes_with_valid_topic(mock_session_cls, mock_config_dir):
     mock_session_cls.assert_called_once_with(
         topic="AI is dangerous",
         config=sdk.config_manager,
-        gatekeeper=sdk.gatekeeper
+        gatekeeper=sdk.gatekeeper,
+        max_rounds=10
     )
 
 @patch("debate.debate.session.DebateSession")

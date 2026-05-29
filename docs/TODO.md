@@ -859,36 +859,36 @@ debate-agents/
 
 ### 7.1 — `src/main.py` — Entry Point
 
-- [ ] Uses `typer` for CLI (not raw `argparse`):
+- [x] Uses `typer` for CLI (not raw `argparse`):
   ```
   Commands:
     run     Run a debate on a given topic
     replay  Replay a saved debate transcript
     status  Show gatekeeper queue status
   ```
-- [ ] `run` command options:
+- [x] `run` command options:
   - `--topic TEXT` (required): debate topic
   - `--rounds INT` (default: 10, min: 5): number of rounds
   - `--model TEXT` (default: from config): LLM model to use
   - `--log-level TEXT` (default: INFO)
   - `--output-dir PATH` (default: results/): where to save transcript
   - `--verbose / --no-verbose`: show live debate vs. just verdict
-- [ ] File ≤ 150 lines
+- [x] File ≤ 150 lines
 
 ### 7.2 — Terminal Output with `rich`
 
-- [ ] Use `rich` for formatted output:
+- [x] Use `rich` for formatted output:
   - Panel for each argument (color-coded: Pro=blue, Con=red, Father=yellow)
   - Progress bar for rounds
   - Final verdict displayed in a bordered box with scores as a table
   - Evidence sources listed beneath each argument (dimmed)
-- [ ] `--verbose` shows live streaming; `--no-verbose` shows only verdict
-- [ ] File ≤ 150 lines (split into `src/debate/ui/display.py` if needed)
+- [x] `--verbose` shows live streaming; `--no-verbose` shows only verdict
+- [x] File ≤ 150 lines (split into `src/debate/ui/display.py` if needed)
 
 ### 7.3 — Transcript Saving
 
-- [ ] Save full transcript to `results/{session_id}_{topic_slug}.json` on completion
-- [ ] Transcript schema:
+- [x] Save full transcript to `results/{session_id}_{topic_slug}.json` on completion
+- [x] Transcript schema:
   ```json
   {
     "session_id": "uuid",
@@ -901,7 +901,7 @@ debate-agents/
     "total_tokens": 0
   }
   ```
-- [ ] Write unit tests:
+- [x] Write unit tests:
   - `test_transcript_saved_to_results_dir`
   - `test_transcript_is_valid_json`
   - `test_transcript_filename_contains_session_id`

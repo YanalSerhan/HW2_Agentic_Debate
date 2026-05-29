@@ -255,6 +255,9 @@ class DebateSession:
                 )
                 self.round_manager.add_round_result(result)
                 
+                if hasattr(self, "on_round") and callable(self.on_round):
+                    self.on_round(rnd, pro_msg.content, con_msg.content)
+                
                 self.father.log_event("ROUND_COMPLETE", {
                     "round": rnd,
                     "input_tokens": round_input_tokens,
