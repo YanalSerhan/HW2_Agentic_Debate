@@ -30,7 +30,7 @@ def test_con_subagent_instantiates_and_responds():
     agent.initialize(config, gatekeeper, client=client)
     
     prompt = agent.get_system_prompt()
-    assert "Con agent" in prompt
+    assert "Con Skill" in prompt
     assert "AI is bad" in prompt
     
     msg = agent.generate_argument(round_number=1, history=[])

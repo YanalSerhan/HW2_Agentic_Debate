@@ -29,7 +29,7 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
         """Initializes the agent with configuration and gatekeeper."""
         self.config = config
         self.gatekeeper = gatekeeper
-        self._anthropic_client = client
+        self._anthropic_client = client if client is not None else getattr(config, 'client', None)
         self.setup_logging(self._role.value, config.get_logging_config())
 
     @abstractmethod

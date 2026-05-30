@@ -31,7 +31,7 @@ def test_pro_subagent_instantiates_and_responds():
     
     # Should use the get_system_prompt in the background via call_api
     prompt = agent.get_system_prompt()
-    assert "Pro agent" in prompt
+    assert "Pro Skill" in prompt
     assert "AI is good" in prompt
     
     # Test generation

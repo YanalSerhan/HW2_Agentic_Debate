@@ -1,7 +1,8 @@
-"""Debate SDK single entry point."""
 import argparse
+import os
 from typing import Any
 
+from anthropic import Anthropic
 from debate.shared.config import ConfigManager
 from debate.shared.gatekeeper import ApiGatekeeper, QueueStatus
 
@@ -13,6 +14,11 @@ class DebateSDK:
         self.topic = topic
         self.max_rounds = max_rounds
         self.config_manager = ConfigManager(config_dir=config_path)
+        
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if api_key:
+            self.config_manager.client = Anthropic(api_key=api_key)
+            
         self.gatekeeper = ApiGatekeeper(self.config_manager.get_rate_limit_config())
         self.on_round = None
 

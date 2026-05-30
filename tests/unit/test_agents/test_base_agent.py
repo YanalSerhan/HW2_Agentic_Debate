@@ -18,6 +18,7 @@ def _make_agent(client=None):
     agent = DummyAgent(AgentRole.PRO, "session1")
     gatekeeper = MagicMock()
     config = MagicMock()
+    config.client = None
     log_config = LoggingConfig(
         version="1.00", log_level="INFO", log_dir="logs",
         max_files=1, max_lines_per_file=5, format="jsonl",

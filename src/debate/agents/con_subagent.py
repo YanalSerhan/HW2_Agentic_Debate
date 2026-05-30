@@ -1,13 +1,8 @@
 from debate.agents.base_subagent import BaseSubagent
-from debate.constants import AgentRole
+from debate.constants import AgentRole, MessageType
 from debate.ipc.message import DebateMessage
+from debate.skills.con_skill import ConSkill
 from debate.skills.skill_base import SkillBase
-
-
-class ConSkill(SkillBase):
-    def load_prompt(self) -> str:
-        # Normally this would load from con_skill.skill.md
-        return "You are the Con agent. Identify the weakest link in the opponent's evidence chain."
 
 class ConSubagent(BaseSubagent):
     """Con position agent."""
@@ -23,10 +18,10 @@ class ConSubagent(BaseSubagent):
         return f"{self._skill.load_prompt()}\nPosition: {self.position}"
 
     def process_message(self, message: DebateMessage) -> DebateMessage:
-        if message.message_type == message.message_type.VERDICT_REQUEST:
+        if message.message_type == MessageType.VERDICT_REQUEST:
             pass
 
-        if message.message_type == message.message_type.COUNTER_ARGUMENT or message.message_type == message.message_type.ARGUMENT:
+        if message.message_type == MessageType.COUNTER_ARGUMENT or message.message_type == MessageType.ARGUMENT:
             return self.generate_counter_argument(message, message.round_number)
 
         return self.generate_argument(message.round_number, [])
