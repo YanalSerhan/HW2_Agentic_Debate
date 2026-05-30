@@ -918,11 +918,11 @@ debate-agents/
 
 ### 8.1 — JSONL Log Structure
 
-- [ ] Each agent writes to its own log file: `logs/{agent_name}_{date}.jsonl`
-- [ ] Father writes a master session log: `logs/session_{session_id}.jsonl`
-- [ ] Each log line is a valid, self-contained JSON object (JSONL format)
-- [ ] Log rotation: at 500 lines per file, create new file; keep max 20 files
-- [ ] Implement `LogRotationManager`:
+- [x] Each agent writes to its own log file: `logs/{agent_name}_{date}.jsonl`
+- [x] Father writes a master session log: `logs/session_{session_id}.jsonl`
+- [x] Each log line is a valid, self-contained JSON object (JSONL format)
+- [x] Log rotation: at 500 lines per file, create new file; keep max 20 files
+- [x] Implement `LogRotationManager`:
   - Checks line count before each write
   - Creates new file when limit reached
   - Deletes oldest file when 20-file limit reached
@@ -930,24 +930,24 @@ debate-agents/
 
 ### 8.2 — Event Types to Log
 
-- [ ] `SESSION_START`: session_id, topic, config snapshot
-- [ ] `ROUND_START`: round number, timestamp
-- [ ] `API_CALL`: agent, model, prompt_tokens, completion_tokens, cost_usd, duration_ms
-- [ ] `TOOL_USE`: agent, tool_name, query, results_count
-- [ ] `IPC_SEND`: sender, recipient, message_type, round
-- [ ] `IPC_RECV`: receiver, sender, message_type, round
-- [ ] `AGREEMENT_DETECTED`: round, agent, flagged_text (triggers regeneration)
-- [ ] `WATCHDOG_KILL`: agent, timeout_seconds, restart_attempt
-- [ ] `VERDICT`: winner, scores, reasoning
-- [ ] `SESSION_END`: duration_seconds, total_rounds, total_cost_usd
-- [ ] `ERROR`: error_type, message, stack_trace, context
+- [x] `SESSION_START`: session_id, topic, config snapshot
+- [x] `ROUND_START`: round number, timestamp
+- [x] `API_CALL`: agent, model, prompt_tokens, completion_tokens, cost_usd, duration_ms
+- [x] `TOOL_USE`: agent, tool_name, query, results_count
+- [x] `IPC_SEND`: sender, recipient, message_type, round
+- [x] `IPC_RECV`: receiver, sender, message_type, round
+- [x] `AGREEMENT_DETECTED`: round, agent, flagged_text (triggers regeneration)
+- [x] `WATCHDOG_KILL`: agent, timeout_seconds, restart_attempt
+- [x] `VERDICT`: winner, scores, reasoning
+- [x] `SESSION_END`: duration_seconds, total_rounds, total_cost_usd
+- [x] `ERROR`: error_type, message, stack_trace, context
 
 ### 8.3 — Cost Monitoring
 
-- [ ] Real-time cost logging per API call
-- [ ] Running total accessible via `DebateSDK.get_cost_so_far() -> float`
-- [ ] Configurable budget limit in `setup.json`; warn when 80% of budget consumed
-- [ ] Write unit tests:
+- [x] Real-time cost logging per API call
+- [x] Running total accessible via `DebateSDK.get_cost_so_far() -> float`
+- [x] Configurable budget limit in `setup.json`; warn when 80% of budget consumed
+- [x] Write unit tests:
   - `test_cost_logged_per_api_call`
   - `test_budget_warning_at_80_percent`
 
@@ -967,110 +967,110 @@ All tests follow TDD: write tests BEFORE or ALONGSIDE implementation.
 
 ### 9.2 — `tests/conftest.py` — Shared Fixtures
 
-- [ ] `mock_anthropic_client`: returns a mock with predictable responses
-- [ ] `mock_gatekeeper`: passes through without rate limiting
-- [ ] `sample_debate_message`: factory for `DebateMessage` with web search evidence
-- [ ] `sample_transcript`: list of 10 `RoundResult` objects
-- [ ] `mock_config`: loads test-safe config values
-- [ ] `sample_verdict`: pre-built `Verdict` for assertion helpers
-- [ ] Mock for IPC channels (in-memory queues)
+- [x] `mock_anthropic_client`: returns a mock with predictable responses
+- [x] `mock_gatekeeper`: passes through without rate limiting
+- [x] `sample_debate_message`: factory for `DebateMessage` with web search evidence
+- [x] `sample_transcript`: list of 10 `RoundResult` objects
+- [x] `mock_config`: loads test-safe config values
+- [x] `sample_verdict`: pre-built `Verdict` for assertion helpers
+- [x] Mock for IPC channels (in-memory queues)
 
 ### 9.3 — Unit Test Coverage Requirements
 
 For each module, tests must cover:
 
 **`test_agents/`**
-- [ ] `test_base_agent.py`:
+- [x] `test_base_agent.py`:
   - `test_call_api_uses_gatekeeper` — verify gatekeeper.execute is called
   - `test_web_search_mandatory` — no-evidence response raises error
   - `test_abstract_process_message_not_callable`
   - Edge case: `test_api_returns_empty_string` → raises `AgentResponseError`
-- [ ] `test_master_agent.py`:
+- [x] `test_master_agent.py`:
   - `test_orchestrate_round_requests_from_pro_first`
   - `test_orchestrate_round_forwards_to_con`
   - `test_father_mediates_all_messages`
   - `test_verdict_always_has_winner`
   - Edge case: `test_pro_timeout_handled_gracefully`
-- [ ] `test_pro_subagent.py`:
+- [x] `test_pro_subagent.py`:
   - `test_generates_evidence_based_argument`
   - `test_argument_supports_pro_position`
   - `test_skill_loaded_from_file`
-- [ ] `test_con_subagent.py`:
+- [x] `test_con_subagent.py`:
   - `test_generates_rebuttal_not_agreement`
   - `test_skill_differs_from_pro_skill`
   - `test_counter_argument_references_pro_point`
 
 **`test_ipc/`**
-- [ ] `test_message.py`:
+- [x] `test_message.py`:
   - `test_full_serialization_round_trip`
   - `test_missing_evidence_validation_error`
   - `test_invalid_role_raises`
   - `test_message_id_is_uuid`
-- [ ] `test_ipc_channel.py`:
+- [x] `test_ipc_channel.py`:
   - `test_send_receive_under_timeout`
   - `test_receive_timeout_raises`
   - `test_queue_depth_tracked`
 
 **`test_debate/`**
-- [ ] `test_session.py`:
+- [x] `test_session.py`:
   - `test_spawns_two_child_processes`
   - `test_processes_terminated_on_completion`
   - `test_minimum_rounds_enforced`
-- [ ] `test_round_manager.py`:
+- [x] `test_round_manager.py`:
   - `test_round_increments_correctly`
   - `test_has_minimum_rounds_false_before_10`
   - `test_transcript_correct_length`
-- [ ] `test_verdict.py`:
+- [x] `test_verdict.py`:
   - `test_is_tie_always_false`
   - `test_serializes_to_json`
 
 **`test_skills/`**
-- [ ] `test_skill_base.py`:
+- [x] `test_skill_base.py`:
   - `test_abstract_methods_enforced`
   - `test_description_non_empty`
-- [ ] `test_pro_skill.py` / `test_con_skill.py`:
+- [x] `test_pro_skill.py` / `test_con_skill.py`:
   - `test_skill_file_exists`
   - `test_skill_description_differs_between_agents`
-- [ ] `test_router_skill.py`:
+- [x] `test_router_skill.py`:
   - `test_routes_to_correct_skill_based_on_opening`
   - `test_irrelevant_skills_not_loaded_to_context`
 
 **`test_shared/`**
-- [ ] `test_gatekeeper.py`: (see Phase 2.2)
-- [ ] `test_config.py`: (see Phase 2.1)
-- [ ] `test_watchdog.py`: (see Phase 3.2)
-- [ ] `test_logging_mixin.py`: (see Phase 3.1)
+- [x] `test_gatekeeper.py`: (see Phase 2.2)
+- [x] `test_config.py`: (see Phase 2.1)
+- [x] `test_watchdog.py`: (see Phase 3.2)
+- [x] `test_logging_mixin.py`: (see Phase 3.1)
 
 ### 9.4 — Integration Tests
 
-- [ ] `test_full_debate.py`:
+- [x] `test_full_debate.py`:
   - `test_end_to_end_debate_completes` (fully mocked API)
   - `test_verdict_generated_after_10_rounds`
   - `test_transcript_saved_correctly`
   - `test_all_messages_have_evidence`
   - `test_no_sibling_direct_messages_in_log`
-- [ ] `test_ipc_flow.py`:
+- [x] `test_ipc_flow.py`:
   - `test_real_multiprocessing_queue_round_trip`
   - `test_father_correctly_routes_all_messages`
-- [ ] `test_gatekeeper_queue.py`:
+- [x] `test_gatekeeper_queue.py`:
   - `test_100_concurrent_requests_queued_correctly`
   - `test_rate_limit_not_exceeded_under_load`
 
 ### 9.5 — Edge Case & Failure Tests
 
-- [ ] Agent process crashes mid-debate → Watchdog restarts
-- [ ] IPC queue fills beyond max depth → backpressure error logged, not crash
-- [ ] API returns malformed JSON tool result → graceful error, retry
-- [ ] Network error during web search → agent logs warning, proceeds with prior evidence
-- [ ] Debate topic is empty string → `ValueError` from SDK before starting
-- [ ] Config file missing → `ConfigurationError` with clear message
+- [x] Agent process crashes mid-debate → Watchdog restarts
+- [x] IPC queue fills beyond max depth → backpressure error logged, not crash
+- [x] API returns malformed JSON tool result → graceful error, retry
+- [x] Network error during web search → agent logs warning, proceeds with prior evidence
+- [x] Debate topic is empty string → `ValueError` from SDK before starting
+- [x] Config file missing → `ConfigurationError` with clear message
 
 ### 9.6 — Performance Tests
 
-- [ ] Measure average round duration (target: < 30 seconds)
-- [ ] Measure total debate duration (target: < 10 minutes for 10 rounds)
-- [ ] Validate token count does not exceed session budget
-- [ ] Log and assert no memory leaks in long-running sessions (process memory check)
+- [x] Measure average round duration (target: < 30 seconds)
+- [x] Measure total debate duration (target: < 10 minutes for 10 rounds)
+- [x] Validate token count does not exceed session budget
+- [x] Log and assert no memory leaks in long-running sessions (process memory check)
 
 ---
 
@@ -1263,6 +1263,21 @@ Before advancing to the next phase, all items in the current phase must pass:
 | G13 | README complete with screenshots | Manual |
 
 ---
+
+## Creative Extensions (Phases 9-18)
+
+- [x] Hitchens vs Chomsky famous debater personas
+- [x] RAG retriever with real knowledge bases (data/hitchens.md, data/chomsky.md)
+- [x] Dynamic Pro/Con role assignment based on topic
+- [x] RBG judge persona
+- [x] Multiprocessing dotenv fix
+- [x] Parallel tool call handling
+- [x] Cost optimizations (haiku model, clamped tokens, limited history)
+
+### Upcoming Tasks
+- [ ] Score timeline visualization (phase 10)
+- [ ] Cinematic README (phase 11)
+- [ ] Final cleanup and ruff (phase 12)
 
 ## Nice-to-Have Improvements
 

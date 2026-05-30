@@ -11,9 +11,19 @@ console = Console()
 
 def print_header(topic: str, rounds: int):
     """Prints the debate header."""
+    from debate.rag.role_assigner import RoleAssigner
+    roles = RoleAssigner().assign_roles(topic)
+    
     header = Text(f"DEBATE: {topic}", style="bold white on blue", justify="center")
     console.print()
     console.print(Panel(header, title="[bold]Multi-Agent Debate System[/bold]"))
+    
+    pro_name = "Christopher Hitchens" if roles["pro"] == "hitchens" else "Noam Chomsky"
+    con_name = "Christopher Hitchens" if roles["con"] == "hitchens" else "Noam Chomsky"
+    
+    sides_text = Text(f"{pro_name} (Pro) vs {con_name} (Con)", style="bold yellow", justify="center")
+    console.print(sides_text)
+    
     console.print(f"[dim]Scheduled for {rounds} rounds[/dim]\n")
 
 def _extract_evidence(msg_content: str) -> tuple[str, str]:

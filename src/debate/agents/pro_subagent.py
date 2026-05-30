@@ -9,12 +9,16 @@ class ProSubagent(BaseSubagent):
 
     def __init__(self, session_id: str, position: str):
         super().__init__(AgentRole.PRO, session_id, position)
+        self.persona = "hitchens"
         self._skill = ProSkill()
 
     def get_skill(self) -> SkillBase:
         return self._skill
 
     def get_system_prompt(self) -> str:
+        if getattr(self, "persona", "hitchens") == "chomsky":
+            from debate.skills.con_skill import ConSkill
+            self._skill = ConSkill()
         return f"{self._skill.load_prompt()}\nPosition: {self.position}"
 
     def process_message(self, message: DebateMessage) -> DebateMessage:

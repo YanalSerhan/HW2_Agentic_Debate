@@ -8,6 +8,7 @@ def test_con_subagent_instantiates_and_responds():
     
     gatekeeper = MagicMock()
     config = MagicMock()
+    config.api_key = None
     log_config = LoggingConfig(version="1.00", log_level="INFO", log_dir="logs", max_files=1, max_lines_per_file=5, format="jsonl")
     config.get_logging_config.return_value = log_config
     
@@ -27,10 +28,11 @@ def test_con_subagent_instantiates_and_responds():
     
     gatekeeper.execute.side_effect = lambda f, *args, **kwargs: f(*args, **kwargs)
     
-    agent.initialize(config, gatekeeper, client=client)
+    agent.initialize(config, gatekeeper)
+    agent._anthropic_client = client
     
     prompt = agent.get_system_prompt()
-    assert "Con Skill" in prompt
+    assert "Noam Chomsky" in prompt
     assert "AI is bad" in prompt
     
     msg = agent.generate_argument(round_number=1, history=[])

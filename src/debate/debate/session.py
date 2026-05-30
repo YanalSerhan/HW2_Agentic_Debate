@@ -30,12 +30,19 @@ def _subagent_worker(
     gatekeeper: ApiGatekeeper,
     channel_receive: IPCChannel,
     channel_send: IPCChannel,
+    persona: str = None,
 ):
     """Entry point for subagent processes."""
+    from dotenv import load_dotenv
+    load_dotenv()
+    
     if role == AgentRole.PRO:
         agent = ProSubagent(session_id, position)
     else:
         agent = ConSubagent(session_id, position)
+
+    if persona:
+        agent.persona = persona
 
     agent.initialize(config, gatekeeper)
     agent.set_ipc_channel(AgentRole.FATHER, channel_send)
@@ -46,8 +53,11 @@ def _subagent_worker(
             reply = agent.process_message(msg)
             if reply:
                 agent.send_to_father(reply)
-        except Exception:
+        except IPCTimeoutError:
             pass  # timeout — loop again
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
 
 
 class DebateSession:
@@ -64,7 +74,9 @@ class DebateSession:
         self.topic = topic
         self.config = config
         self.gatekeeper = gatekeeper
-        self.max_rounds = max(max_rounds, MIN_ROUNDS)
+        if max_rounds < MIN_ROUNDS:
+            logger.warning(f"Requested {max_rounds} rounds, which is less than MIN_ROUNDS ({MIN_ROUNDS})")
+        self.max_rounds = max_rounds
 
         self.pro_process: multiprocessing.Process | None = None
         self.con_process: multiprocessing.Process | None = None
@@ -96,12 +108,17 @@ class DebateSession:
 
     def start_processes(self):
         """Starts the subagent processes."""
+        from debate.rag.role_assigner import RoleAssigner
+        roles = RoleAssigner().assign_roles(self.topic)
+        self.pro_persona = roles["pro"]
+        self.con_persona = roles["con"]
+        
         self.pro_process = multiprocessing.Process(
             target=_subagent_worker,
             args=(
                 AgentRole.PRO, self.session_id,
                 f"Support: {self.topic}", self.config, self.gatekeeper,
-                self.father_to_pro, self.pro_to_father,
+                self.father_to_pro, self.pro_to_father, self.pro_persona
             ),
             daemon=True,
         )
@@ -110,7 +127,7 @@ class DebateSession:
             args=(
                 AgentRole.CON, self.session_id,
                 f"Oppose: {self.topic}", self.config, self.gatekeeper,
-                self.father_to_con, self.con_to_father,
+                self.father_to_con, self.con_to_father, self.con_persona
             ),
             daemon=True,
         )
@@ -137,10 +154,12 @@ class DebateSession:
             proc = self.pro_process
             ch_send, ch_recv = self.father_to_pro, self.pro_to_father
             position = f"Support: {self.topic}"
+            persona = getattr(self, "pro_persona", "hitchens")
         else:
             proc = self.con_process
             ch_send, ch_recv = self.father_to_con, self.con_to_father
             position = f"Oppose: {self.topic}"
+            persona = getattr(self, "con_persona", "chomsky")
 
         if proc and proc.is_alive():
             proc.terminate()
@@ -149,7 +168,7 @@ class DebateSession:
         new_proc = multiprocessing.Process(
             target=_subagent_worker,
             args=(role, self.session_id, position,
-                  self.config, self.gatekeeper, ch_send, ch_recv),
+                  self.config, self.gatekeeper, ch_send, ch_recv, persona),
             daemon=True,
         )
         new_proc.start()
@@ -182,7 +201,7 @@ class DebateSession:
 
     def _request_from_child(
         self, role: AgentRole, expected_type: MessageType, round_number: int,
-        timeout: float = 30.0,
+        timeout: float = 120.0,
     ) -> DebateMessage | None:
         """Try to receive from *role*; restart on timeout up to limit."""
         try:
@@ -211,7 +230,7 @@ class DebateSession:
 
                 # 2a — request argument from Pro
                 pro_msg = self._request_from_child(
-                    AgentRole.PRO, MessageType.ARGUMENT, rnd, timeout=30.0,
+                    AgentRole.PRO, MessageType.ARGUMENT, rnd, timeout=120.0,
                 )
                 if pro_msg is None:
                     # Forfeit

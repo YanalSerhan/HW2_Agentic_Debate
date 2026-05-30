@@ -1,6 +1,6 @@
 {
   "version": "1.00",
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-haiku-4-5-20251001",
   "max_rounds": 10,
   "timeout_seconds": 30,
   "debate_language": "english",

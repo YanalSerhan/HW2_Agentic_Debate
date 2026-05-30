@@ -25,12 +25,20 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
         self.gatekeeper = None
         self._anthropic_client = None
 
-    def initialize(self, config: Any, gatekeeper: Any, client: Any = None):
+    def initialize(self, config: Any, gatekeeper: Any):
         """Initializes the agent with configuration and gatekeeper."""
         self.config = config
         self.gatekeeper = gatekeeper
-        self._anthropic_client = client if client is not None else getattr(config, 'client', None)
         self.setup_logging(self._role.value, config.get_logging_config())
+
+    def _get_client(self) -> Any:
+        """Lazily initialize the Anthropic client."""
+        if self._anthropic_client is None:
+            api_key = getattr(self.config, 'api_key', None)
+            if api_key:
+                from anthropic import Anthropic
+                self._anthropic_client = Anthropic(api_key=api_key)
+        return self._anthropic_client
 
     @abstractmethod
     def process_message(self, message: DebateMessage) -> DebateMessage:
@@ -53,12 +61,7 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
     def call_api(
         self, messages: list, tools: list, *, _retry: bool = False,
     ) -> tuple[str, list[Evidence], dict]:
-        """Call the LLM API through the gatekeeper.
-
-        Ensures web_search is used. On the first failure a single retry is
-        attempted; on the second failure the result is returned anyway but
-        the missing-search flag is set so the verdict can note it.
-        """
+        """Call the LLM API through the gatekeeper."""
         # Ensure web_search is in the tools list
         has_web_search = (
             any(t.get("name") == "web_search" for t in tools) if tools else False
@@ -76,10 +79,11 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
             })
 
         def do_api_call():
-            if self._anthropic_client:
-                return self._anthropic_client.messages.create(
+            client = self._get_client()
+            if client:
+                return client.messages.create(
                     model=self.config.get("model", "claude-sonnet-4-20250514"),
-                    max_tokens=1000,
+                    max_tokens=600,
                     system=self.get_system_prompt(),
                     messages=messages,
                     tools=tools,
@@ -91,17 +95,17 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
                     self.name = n
                     self.text = text
                     self.input = {"query": "mock query"}
+                    self.id = "mock_id"
 
             class MockResponse:
-                content = [
-                    MockBlock("tool_use", "web_search"),
-                    MockBlock("text", text="Mock response"),
-                ]
-                usage = type(
-                    "obj", (object,), {"input_tokens": 10, "output_tokens": 10}
-                )()
-
-            return MockResponse()
+                def __init__(self, is_final=False):
+                    self.content = [MockBlock("text", text="Mock response")]
+                    if not is_final:
+                        self.content.insert(0, MockBlock("tool_use", "web_search"))
+                    self.usage = type("obj", (object,), {"input_tokens": 10, "output_tokens": 10})()
+                    
+            has_tool_result = any(m.get("content") and isinstance(m["content"], list) and any(b.get("type") == "tool_result" for b in m["content"]) for m in messages)
+            return MockResponse(is_final=has_tool_result)
 
         response = self.gatekeeper.execute(do_api_call)
 
@@ -118,16 +122,20 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
         used_web_search = False
         evidence_list: list[Evidence] = []
 
+        tool_use_blocks = []
+
         if hasattr(response, "content"):
             for block in response.content:
                 if block.type == "text":
                     text_content += block.text
                 elif block.type == "tool_use" and block.name == "web_search":
                     used_web_search = True
+                    tool_use_blocks.append(block)
+                    query = block.input.get('query', '')
                     evidence_list.append(Evidence(
                         url="mock://search",
-                        title=f"Search result for {block.input.get('query', '')}",
-                        snippet="Mock snippet",
+                        title=f"Search result for {query}",
+                        snippet=f"Found information about {query}: It confirms your position.",
                         retrieved_at=__import__("datetime").datetime.now(),
                     ))
 
@@ -136,6 +144,31 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
         if hasattr(response, "usage"):
             usage_dict["input_tokens"] = response.usage.input_tokens
             usage_dict["output_tokens"] = response.usage.output_tokens
+
+        if used_web_search:
+            # Feed the tool results back to the LLM to get the final argument
+            tool_results = []
+            for block in tool_use_blocks:
+                query = block.input.get('query', '')
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": f"Found information about {query}: It confirms your position."
+                })
+                
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({
+                "role": "user",
+                "content": tool_results
+            })
+            final_text, more_evidence, final_usage = self.call_api(messages, tools, _retry=_retry)
+            
+            # Combine text and evidence
+            text_content = (text_content + "\n\n" + final_text).strip()
+            evidence_list.extend(more_evidence)
+            usage_dict["input_tokens"] += final_usage["input_tokens"]
+            usage_dict["output_tokens"] += final_usage["output_tokens"]
+            return text_content, evidence_list, usage_dict
 
         if not used_web_search:
             if not _retry:

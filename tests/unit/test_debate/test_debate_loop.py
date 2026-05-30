@@ -50,7 +50,7 @@ def _make_session(max_rounds=MIN_ROUNDS):
 # 5.1 — debate loop tests
 # ---------------------------------------------------------------------------
 
-def test_debate_runs_minimum_10_rounds():
+def test_debate_runs_minimum_3_rounds():
     """The round manager should end up with MIN_ROUNDS results."""
     session = _make_session()
 

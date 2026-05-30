@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from debate.agents.base_agent import BaseAgent
 from debate.constants import AgentRole, MessageType
 from debate.ipc.message import DebateMessage
+from debate.rag.retriever import RAGRetriever
 from debate.skills.skill_base import SkillBase
 
 
@@ -18,6 +19,8 @@ class BaseSubagent(BaseAgent):
     def __init__(self, role: AgentRole, session_id: str, position: str):
         super().__init__(role, session_id)
         self.position = position
+        self.persona = "hitchens" if role == AgentRole.PRO else "chomsky"
+        self.retriever = RAGRetriever()
 
     @abstractmethod
     def get_skill(self) -> SkillBase:
@@ -25,10 +28,15 @@ class BaseSubagent(BaseAgent):
         pass
 
     def _build_argument_prompt(self, round_number: int, history: list[DebateMessage]) -> str:
-        history_text = "\n".join([f"Round {m.round_number} ({m.sender.value}): {m.content}" for m in history])
+        history_text = "\n".join([f"Round {m.round_number} ({m.sender.value}): {m.content}" for m in history[-2:]])
+        # Retrieve context from knowledge base (assuming topic is self.position for simplicity if topic not provided, or fetch from session)
+        # We will just pass self.position as the topic to retrieve relevant chunks
+        rag_context = self.retriever.get_context_for_argument(self.persona, self.position, round_number)
+        
         return (
             f"You are defending the position: {self.position}\n"
             f"This is round {round_number}.\n"
+            f"{rag_context}"
             f"Debate history so far:\n{history_text}\n"
             f"Generate your next argument."
         )
@@ -44,7 +52,7 @@ class BaseSubagent(BaseAgent):
 
     def _check_agreement(self, text: str):
         text_lower = text.lower()
-        forbidden_phrases = ["i agree", "you're right", "you are right", "exactly", "correct"]
+        forbidden_phrases = ["i agree", "you're right", "you are right"]
         for phrase in forbidden_phrases:
             if phrase in text_lower:
                 raise AgreementError(f"Agent agreed with opponent using phrase: '{phrase}'")

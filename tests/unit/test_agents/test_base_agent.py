@@ -18,6 +18,7 @@ def _make_agent(client=None):
     agent = DummyAgent(AgentRole.PRO, "session1")
     gatekeeper = MagicMock()
     config = MagicMock()
+    config.api_key = None
     config.client = None
     log_config = LoggingConfig(
         version="1.00", log_level="INFO", log_dir="logs",
@@ -25,7 +26,8 @@ def _make_agent(client=None):
     )
     config.get_logging_config.return_value = log_config
     gatekeeper.execute.side_effect = lambda f, *a, **kw: f(*a, **kw)
-    agent.initialize(config, gatekeeper, client=client)
+    agent.initialize(config, gatekeeper)
+    agent._anthropic_client = client
     return agent, gatekeeper
 
 

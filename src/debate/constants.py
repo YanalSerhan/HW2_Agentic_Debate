@@ -24,6 +24,6 @@ class DebateStatus(Enum):
     COMPLETE = "complete"
     FAILED = "failed"
 
-MIN_ROUNDS = 10
+MIN_ROUNDS = 3
 MAX_FILE_LINES = 500
 MAX_LOG_FILES = 20

@@ -8,6 +8,7 @@ def test_pro_subagent_instantiates_and_responds():
     
     gatekeeper = MagicMock()
     config = MagicMock()
+    config.api_key = None
     log_config = LoggingConfig(version="1.00", log_level="INFO", log_dir="logs", max_files=1, max_lines_per_file=5, format="jsonl")
     config.get_logging_config.return_value = log_config
     
@@ -27,11 +28,12 @@ def test_pro_subagent_instantiates_and_responds():
     
     gatekeeper.execute.side_effect = lambda f, *args, **kwargs: f(*args, **kwargs)
     
-    agent.initialize(config, gatekeeper, client=client)
+    agent.initialize(config, gatekeeper)
+    agent._anthropic_client = client
     
     # Should use the get_system_prompt in the background via call_api
     prompt = agent.get_system_prompt()
-    assert "Pro Skill" in prompt
+    assert "Christopher Hitchens" in prompt
     assert "AI is good" in prompt
     
     # Test generation

@@ -18,7 +18,7 @@ def test_master_agent_instantiates_and_responds():
     agent.initialize(config, gatekeeper)
     
     prompt = agent.get_system_prompt()
-    assert "Father agent" in prompt
+    assert "Ruth Bader Ginsburg" in prompt
     assert "never declare a tie" in prompt
     
     msg = DebateMessage(

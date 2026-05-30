@@ -53,6 +53,8 @@ class VerdictGenerator:
         )
 
     def _parse_json(self, text: str) -> dict:
+        import re
+        text = re.sub(r'```json\s*|\s*```', '', text).strip()
         try:
             start_idx = text.find("{")
             end_idx = text.rfind("}")

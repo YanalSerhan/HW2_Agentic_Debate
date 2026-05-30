@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import argparse
 import os
 from typing import Any
@@ -17,7 +20,7 @@ class DebateSDK:
         
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if api_key:
-            self.config_manager.client = Anthropic(api_key=api_key)
+            self.config_manager.api_key = api_key
             
         self.gatekeeper = ApiGatekeeper(self.config_manager.get_rate_limit_config())
         self.on_round = None

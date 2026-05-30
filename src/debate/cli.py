@@ -19,7 +19,7 @@ console = Console()
 @app.command()
 def run(
     topic: str = typer.Option(..., "--topic", help="The debate topic"),
-    rounds: int = typer.Option(10, "--rounds", min=5, help="Number of rounds"),
+    rounds: int = typer.Option(10, "--rounds", min=3, help="Number of rounds"),
     model: Optional[str] = typer.Option(None, "--model", help="LLM model to use"),
     log_level: str = typer.Option("INFO", "--log-level", help="Logging level"),
     output_dir: str = typer.Option("results/", "--output-dir", help="Where to save transcript"),
