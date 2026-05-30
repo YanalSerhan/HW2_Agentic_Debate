@@ -10,6 +10,8 @@ class RoundResult(BaseModel):
     pro_message: str
     con_message: str
     timestamp: datetime
+    pro_score: int | None = None
+    con_score: int | None = None
 
 class RoundManager:
     """Manages debate rounds and transcript."""

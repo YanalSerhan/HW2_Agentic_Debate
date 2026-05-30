@@ -104,7 +104,13 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
                         self.content.insert(0, MockBlock("tool_use", "web_search"))
                     self.usage = type("obj", (object,), {"input_tokens": 10, "output_tokens": 10})()
                     
-            has_tool_result = any(m.get("content") and isinstance(m["content"], list) and any(b.get("type") == "tool_result" for b in m["content"]) for m in messages)
+            has_tool_result = any(
+                m.get("content") and isinstance(m["content"], list) and any(
+                    (b.get("type") == "tool_result" if isinstance(b, dict) else getattr(b, "type", None) == "tool_result")
+                    for b in m["content"]
+                )
+                for m in messages
+            )
             return MockResponse(is_final=has_tool_result)
 
         response = self.gatekeeper.execute(do_api_call)

@@ -24,7 +24,7 @@ def create_msg(sender: AgentRole, recipient: AgentRole, msg_type: MessageType):
         timestamp=datetime.now()
     )
 
-def mock_pro_process(receive_channel: IPCChannel, send_channel: IPCChannel):
+def dummy_pro_process(receive_channel: IPCChannel, send_channel: IPCChannel):
     # Pro waits for a request, then sends an argument
     try:
         msg = receive_channel.receive(timeout=5.0)
@@ -34,7 +34,7 @@ def mock_pro_process(receive_channel: IPCChannel, send_channel: IPCChannel):
     except Exception:
         pass
 
-def mock_con_process(receive_channel: IPCChannel, send_channel: IPCChannel):
+def dummy_con_process(receive_channel: IPCChannel, send_channel: IPCChannel):
     try:
         msg = receive_channel.receive(timeout=5.0)
         if msg.message_type == MessageType.ARGUMENT: # Forwarded from Father
@@ -43,7 +43,7 @@ def mock_con_process(receive_channel: IPCChannel, send_channel: IPCChannel):
     except Exception:
         pass
 
-def mock_hanging_process():
+def dummy_hanging_process():
     # Process that just hangs indefinitely to test watchdog
     time.sleep(100.0)
 
@@ -62,7 +62,7 @@ def test_father_receives_from_pro():
     father.set_ipc_send_channel(AgentRole.PRO, f_to_p)
     father.set_ipc_receive_channel(AgentRole.PRO, p_to_f)
     
-    p = multiprocessing.Process(target=mock_pro_process, args=(f_to_p, p_to_f))
+    p = multiprocessing.Process(target=dummy_pro_process, args=(f_to_p, p_to_f))
     p.start()
     
     try:
@@ -86,7 +86,7 @@ def test_father_forwards_to_con():
     father.set_ipc_send_channel(AgentRole.CON, f_to_c)
     father.set_ipc_receive_channel(AgentRole.CON, c_to_f)
     
-    p = multiprocessing.Process(target=mock_con_process, args=(f_to_c, c_to_f))
+    p = multiprocessing.Process(target=dummy_con_process, args=(f_to_c, c_to_f))
     p.start()
     
     try:
@@ -118,7 +118,7 @@ def test_sibling_direct_message_rejected():
 
 def test_ipc_timeout_triggers_watchdog():
     father = setup_father()
-    p = multiprocessing.Process(target=mock_hanging_process)
+    p = multiprocessing.Process(target=dummy_hanging_process)
     p.start()
     
     # Start watchdog with a very short timeout

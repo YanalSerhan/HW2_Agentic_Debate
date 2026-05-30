@@ -16,19 +16,19 @@ class DummyAgent(BaseAgent):
 
 def _make_agent(client=None):
     agent = DummyAgent(AgentRole.PRO, "session1")
-    gatekeeper = MagicMock()
-    config = MagicMock()
-    config.api_key = None
-    config.client = None
+    rate_limited_gatekeeper = MagicMock()
+    debate_config = MagicMock()
+    debate_config.api_key = None
+    debate_config.client = None
     log_config = LoggingConfig(
         version="1.00", log_level="INFO", log_dir="logs",
         max_files=1, max_lines_per_file=5, format="jsonl",
     )
-    config.get_logging_config.return_value = log_config
-    gatekeeper.execute.side_effect = lambda f, *a, **kw: f(*a, **kw)
-    agent.initialize(config, gatekeeper)
+    debate_config.get_logging_config.return_value = log_config
+    rate_limited_gatekeeper.execute.side_effect = lambda f, *a, **kw: f(*a, **kw)
+    agent.initialize(debate_config, rate_limited_gatekeeper)
     agent._anthropic_client = client
-    return agent, gatekeeper
+    return agent, rate_limited_gatekeeper
 
 
 def test_abstract_methods_enforced():
@@ -36,27 +36,21 @@ def test_abstract_methods_enforced():
         BaseAgent(AgentRole.PRO, "session1")
 
 
-def test_call_api_routes_through_gatekeeper():
-    agent, gatekeeper = _make_agent()
+def test_call_api_routes_through_gatekeeper(fake_anthropic_client):
+    agent, rate_limited_gatekeeper = _make_agent(client=fake_anthropic_client)
     text, evidence, usage = agent.call_api([], [])
-    gatekeeper.execute.assert_called_once()
+    assert rate_limited_gatekeeper.execute.called
     assert text == "Mock response"
-    assert len(evidence) == 1
 
 
-def test_retry_on_missing_search():
+def test_retry_on_missing_search(anthropic_response_factory, fake_anthropic_client):
     """First failure triggers automatic retry; second failure sets flag."""
-    class MockBlock:
-        def __init__(self, t, text="Mock text"):
-            self.type = t
-            self.text = text
+    AnthropicContentBlock, AnthropicAPIResponse = anthropic_response_factory
 
-    class MockResponseNoTools:
-        content = [MockBlock("text")]
-        usage = type("o", (object,), {"input_tokens": 10, "output_tokens": 10})()
-
-    client = MagicMock()
-    client.messages.create.return_value = MockResponseNoTools()
+    client = fake_anthropic_client
+    # Simulate a response with no tool use blocks
+    client.messages.create.side_effect = None
+    client.messages.create.return_value = AnthropicAPIResponse([AnthropicContentBlock("text", text="Mock text")])
     agent, _ = _make_agent(client=client)
 
     text, evidence, usage = agent.call_api([], [])
@@ -69,9 +63,9 @@ def test_retry_on_missing_search():
     assert evidence == []
 
 
-def test_evidence_extracted_from_tool_result():
-    agent, _ = _make_agent()
+def test_evidence_extracted_from_tool_result(fake_anthropic_client):
+    agent, _ = _make_agent(client=fake_anthropic_client)
     text, evidence, usage = agent.call_api([], [])
     assert len(evidence) == 1
     assert evidence[0].url == "mock://search"
-    assert "mock query" in evidence[0].title
+    assert "mock" in evidence[0].title

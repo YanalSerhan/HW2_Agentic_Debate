@@ -1273,11 +1273,17 @@ Before advancing to the next phase, all items in the current phase must pass:
 - [x] Multiprocessing dotenv fix
 - [x] Parallel tool call handling
 - [x] Cost optimizations (haiku model, clamped tokens, limited history)
+- [x] Phase 10: Real per-round scoring, score timeline visualization, unified conftest mocks, professional test naming
 
 ### Upcoming Tasks
-- [ ] Score timeline visualization (phase 10)
-- [ ] Cinematic README (phase 11)
-- [ ] Final cleanup and ruff (phase 12)
+- [ ] Phase 11: Replay command (re-render saved debate without API calls)
+- [ ] Phase 12: Prompt engineering log (prompts/prompt_log.md with 5+ entries)
+- [ ] Phase 13: Cost analysis (token tracking table, budget warnings)
+- [ ] Phase 14: Ruff compliance + file size check
+- [ ] Phase 15: Test coverage ≥85%
+- [ ] Phase 16: Notebook analysis (notebooks/debate_analysis.ipynb)
+- [ ] Phase 17: Cinematic README
+- [ ] Phase 18: Final hardening and submission checklist
 
 ## Nice-to-Have Improvements
 

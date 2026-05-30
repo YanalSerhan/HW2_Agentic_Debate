@@ -272,6 +272,11 @@ class DebateSession:
                     con_message=con_msg.content,
                     timestamp=datetime.now(timezone.utc),
                 )
+                
+                pro_score, con_score = self.father.score_round(result)
+                result.pro_score = pro_score
+                result.con_score = con_score
+                
                 self.round_manager.add_round_result(result)
                 
                 if hasattr(self, "on_round") and callable(self.on_round):

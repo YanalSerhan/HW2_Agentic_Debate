@@ -29,6 +29,7 @@ def test_token_accumulation_across_rounds():
     
     session = DebateSession("Topic", config, gatekeeper, max_rounds=2)
     session.father = MagicMock()
+    session.father.score_round.return_value = (50, 50)
     
     # Mock _request_from_child to return our constructed messages
     # Round 1: Pro uses 100 in, 50 out. Con uses 150 in, 50 out.
@@ -40,10 +41,10 @@ def test_token_accumulation_across_rounds():
         (AgentRole.CON, 2): _make_msg(AgentRole.CON, 250, 50, 2)
     }
     
-    def mock_request(role, expected_type, round_number, timeout=30.0):
+    def simulated_request(role, expected_type, round_number, timeout=30.0):
         return msgs.get((role, round_number))
         
-    session._request_from_child = mock_request
+    session._request_from_child = simulated_request
     session._receive_con_with_agreement_check = lambda pro_msg, rnd: msgs.get((AgentRole.CON, rnd))
     
     # Disable actual process operations
@@ -73,6 +74,7 @@ def test_cost_calculation_matches_model_pricing():
     gatekeeper = MagicMock()
     session = DebateSession("Topic", config, gatekeeper, max_rounds=1)
     session.father = MagicMock()
+    session.father.score_round.return_value = (50, 50)
     
     # 1 million input tokens, 1 million output tokens for pro
     msgs = {
@@ -80,10 +82,10 @@ def test_cost_calculation_matches_model_pricing():
         (AgentRole.CON, 1): _make_msg(AgentRole.CON, 0, 0, 1),
     }
     
-    def mock_request(role, expected_type, round_number, timeout=30.0):
+    def simulated_request(role, expected_type, round_number, timeout=30.0):
         return msgs.get((role, round_number))
         
-    session._request_from_child = mock_request
+    session._request_from_child = simulated_request
     session._receive_con_with_agreement_check = lambda pro_msg, rnd: msgs.get((AgentRole.CON, rnd))
     
     session.start_processes = MagicMock()

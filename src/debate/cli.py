@@ -119,6 +119,26 @@ def status():
     console.print(f"Requests this minute: {status.requests_this_minute}")
     console.print(f"Requests this hour: {status.requests_this_hour}")
 
+@app.command()
+def visualize(
+    file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
+):
+    """Generate visualization charts from a debate transcript."""
+    from debate.visualization.score_timeline import ScoreTimeline
+    
+    console.print(f"[bold green]Generating visualizations for {file}...[/bold green]")
+    timeline = ScoreTimeline()
+    result = timeline.generate(file)
+    
+    if result.get("status") == "error":
+        console.print(f"[bold red]Error: {result.get('message')}[/bold red]")
+        raise typer.Exit(1)
+        
+    console.print(f"[bold cyan]Charts saved successfully![/bold cyan]")
+    for name, path in result.items():
+        if name != "status":
+            console.print(f"  - {name}: [dim]{path}[/dim]")
+
 def main():
     app()
 

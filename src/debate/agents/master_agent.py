@@ -92,6 +92,28 @@ class MasterAgent(BaseAgent):
             timestamp=datetime.now(timezone.utc),
         )
 
+    def score_round(self, result: RoundResult) -> tuple[int, int]:
+        """Performs a lightweight evaluation of a single round."""
+        import json
+        prompt = (
+            f"Evaluate Round {result.round_number}.\n"
+            f"PRO ARGUMENT:\n{result.pro_message}\n\n"
+            f"CON COUNTER-ARGUMENT:\n{result.con_message}\n\n"
+            "Output JSON with ONLY two integer keys 'pro_score' and 'con_score' from 0-100 reflecting "
+            "the strength of these arguments. Do not include reasoning or markdown, JUST raw JSON."
+        )
+        
+        messages = [{"role": "user", "content": prompt}]
+        text, _, _ = self.call_api(messages, tools=[])
+        
+        try:
+            # Strip markdown if present
+            clean_text = text.replace("```json", "").replace("```", "").strip()
+            data = json.loads(clean_text)
+            return data.get("pro_score", 50), data.get("con_score", 50)
+        except Exception:
+            return 50, 50
+
     def deliver_verdict(self, transcript: list[RoundResult], total_tokens: int = 0, total_cost: float = 0.0) -> Verdict:
         """Evaluate the full transcript and deliver a Verdict."""
         generator = VerdictGenerator(self)

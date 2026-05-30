@@ -12,15 +12,15 @@ runner = CliRunner()
 def test_transcript_saved_to_results_dir(tmp_path, mocker):
     """Test that running a debate saves a transcript to the output dir."""
     # Mock the SDK to avoid running a real debate
-    mock_sdk = mocker.patch("debate.cli.DebateSDK")
-    mock_instance = mock_sdk.return_value
+    patched_sdk = mocker.patch("debate.cli.DebateSDK")
+    fake_sdk_instance = patched_sdk.return_value
     
     # Setup mock return values
     from debate.debate.verdict import Verdict
     from debate.constants import AgentRole
     from datetime import datetime, timezone
     
-    mock_verdict = Verdict(
+    dummy_verdict = Verdict(
         session_id="test_sess_123",
         winner=AgentRole.PRO,
         pro_score=80.0,
@@ -32,8 +32,8 @@ def test_transcript_saved_to_results_dir(tmp_path, mocker):
         total_cost_usd=0.01,
         timestamp=datetime.now(timezone.utc)
     )
-    mock_instance.run_debate.return_value = mock_verdict
-    mock_instance.get_transcript.return_value = []
+    fake_sdk_instance.run_debate.return_value = dummy_verdict
+    fake_sdk_instance.get_transcript.return_value = []
     
     output_dir = tmp_path / "results"
     

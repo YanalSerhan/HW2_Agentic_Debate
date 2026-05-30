@@ -14,7 +14,7 @@ if module_name not in sys.modules:
     sys.modules[module_name] = dummy_module
 
 @pytest.fixture
-def mock_config_dir(tmp_path):
+def temp_config_dir(tmp_path):
     import json
     config_dir = tmp_path / "config"
     config_dir.mkdir()
@@ -62,14 +62,14 @@ def mock_config_dir(tmp_path):
     return config_dir
 
 @patch("debate.debate.session.DebateSession")
-def test_sdk_initializes_with_valid_topic(mock_session_cls, mock_config_dir):
-    sdk = DebateSDK(topic="AI is dangerous", config_path=str(mock_config_dir))
+def test_sdk_initializes_with_valid_topic(patched_session_class, temp_config_dir):
+    sdk = DebateSDK(topic="AI is dangerous", config_path=str(temp_config_dir))
     
     assert sdk.topic == "AI is dangerous"
     assert sdk.config_manager is not None
     assert sdk.gatekeeper is not None
     
-    mock_session_cls.assert_called_once_with(
+    patched_session_class.assert_called_once_with(
         topic="AI is dangerous",
         config=sdk.config_manager,
         gatekeeper=sdk.gatekeeper,
@@ -77,25 +77,25 @@ def test_sdk_initializes_with_valid_topic(mock_session_cls, mock_config_dir):
     )
 
 @patch("debate.debate.session.DebateSession")
-def test_run_debate_returns_verdict(mock_session_cls, mock_config_dir):
-    mock_session_instance = MagicMock()
-    mock_session_instance.run.return_value = "Mocked Verdict"
-    mock_session_cls.return_value = mock_session_instance
+def test_run_debate_returns_verdict(patched_session_class, temp_config_dir):
+    fake_session_instance = MagicMock()
+    fake_session_instance.run.return_value = "Mocked Verdict"
+    patched_session_class.return_value = fake_session_instance
     
-    sdk = DebateSDK(topic="AI is dangerous", config_path=str(mock_config_dir))
+    sdk = DebateSDK(topic="AI is dangerous", config_path=str(temp_config_dir))
     result = sdk.run_debate()
     
     assert result == "Mocked Verdict"
-    mock_session_instance.run.assert_called_once()
+    fake_session_instance.run.assert_called_once()
 
 @patch("debate.debate.session.DebateSession")
-def test_get_transcript_returns_rounds(mock_session_cls, mock_config_dir):
-    mock_session_instance = MagicMock()
-    mock_session_instance.get_transcript.return_value = ["Round 1", "Round 2"]
-    mock_session_cls.return_value = mock_session_instance
+def test_get_transcript_returns_rounds(patched_session_class, temp_config_dir):
+    fake_session_instance = MagicMock()
+    fake_session_instance.get_transcript.return_value = ["Round 1", "Round 2"]
+    patched_session_class.return_value = fake_session_instance
     
-    sdk = DebateSDK(topic="AI is dangerous", config_path=str(mock_config_dir))
+    sdk = DebateSDK(topic="AI is dangerous", config_path=str(temp_config_dir))
     transcript = sdk.get_transcript()
     
     assert transcript == ["Round 1", "Round 2"]
-    mock_session_instance.get_transcript.assert_called_once()
+    fake_session_instance.get_transcript.assert_called_once()

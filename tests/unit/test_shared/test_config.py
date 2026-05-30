@@ -4,7 +4,7 @@ from pathlib import Path
 from debate.shared.config import ConfigManager, ConfigurationError, RateLimitConfig, LoggingConfig
 
 @pytest.fixture
-def mock_config_dir(tmp_path):
+def temp_config_dir(tmp_path):
     config_dir = tmp_path / "config"
     config_dir.mkdir()
     
@@ -50,8 +50,8 @@ def mock_config_dir(tmp_path):
         
     return config_dir
 
-def test_loads_all_config_files(mock_config_dir):
-    manager = ConfigManager(config_dir=str(mock_config_dir))
+def test_loads_all_config_files(temp_config_dir):
+    manager = ConfigManager(config_dir=str(temp_config_dir))
     
     assert manager.get("model") == "claude-sonnet-4-20250514"
     assert manager.get("max_rounds") == 10
@@ -67,14 +67,14 @@ def test_loads_all_config_files(mock_config_dir):
     assert log_config.log_level == "INFO"
     assert log_config.format == "jsonl"
 
-def test_get_returns_default_on_missing_key(mock_config_dir):
-    manager = ConfigManager(config_dir=str(mock_config_dir))
+def test_get_returns_default_on_missing_key(temp_config_dir):
+    manager = ConfigManager(config_dir=str(temp_config_dir))
     assert manager.get("nonexistent_key") is None
     assert manager.get("nonexistent_key", "default_val") == "default_val"
 
-def test_raises_on_missing_required_key(mock_config_dir):
+def test_raises_on_missing_required_key(temp_config_dir):
     # Remove a required key
-    setup_file = mock_config_dir / "setup.json"
+    setup_file = temp_config_dir / "setup.json"
     with open(setup_file, "r") as f:
         data = json.load(f)
     del data["model"]
@@ -82,11 +82,11 @@ def test_raises_on_missing_required_key(mock_config_dir):
         json.dump(data, f)
         
     with pytest.raises(ConfigurationError, match="Missing required key 'model'"):
-        ConfigManager(config_dir=str(mock_config_dir))
+        ConfigManager(config_dir=str(temp_config_dir))
 
-def test_version_validated_on_load(mock_config_dir):
+def test_version_validated_on_load(temp_config_dir):
     # Alter version
-    setup_file = mock_config_dir / "setup.json"
+    setup_file = temp_config_dir / "setup.json"
     with open(setup_file, "r") as f:
         data = json.load(f)
     data["version"] = "2.00"
@@ -94,4 +94,4 @@ def test_version_validated_on_load(mock_config_dir):
         json.dump(data, f)
         
     with pytest.raises(ConfigurationError, match="Invalid or missing version"):
-        ConfigManager(config_dir=str(mock_config_dir))
+        ConfigManager(config_dir=str(temp_config_dir))
