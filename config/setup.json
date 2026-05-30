@@ -2,12 +2,12 @@
   "version": "1.00",
   "model": "claude-haiku-4-5-20251001",
   "max_rounds": 10,
-  "timeout_seconds": 30,
+  "timeout_seconds": 120,
   "debate_language": "english",
   "min_argument_words": 50,
   "max_argument_words": 300,
   "pricing": {
-    "input_token_cost_per_million": 3.0,
-    "output_token_cost_per_million": 15.0
+    "input_token_cost_per_million": 0.80,
+    "output_token_cost_per_million": 4.00
   }
 }

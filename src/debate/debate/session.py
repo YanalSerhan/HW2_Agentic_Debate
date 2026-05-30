@@ -133,7 +133,8 @@ class DebateSession:
         )
         self.pro_process.start()
         self.con_process.start()
-        self.father.start_watchdog(timeout=30.0, process=self.pro_process)
+        timeout_sec = float(self.config.get("timeout_seconds", 30.0))
+        self.father.start_watchdog(timeout=timeout_sec, process=self.pro_process)
 
     def terminate_processes(self):
         """Cleanly terminates the subagent processes."""

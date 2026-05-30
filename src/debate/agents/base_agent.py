@@ -62,20 +62,15 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
         self, messages: list, tools: list, *, _retry: bool = False,
     ) -> tuple[str, list[Evidence], dict]:
         """Call the LLM API through the gatekeeper."""
-        # Ensure web_search is in the tools list
-        has_web_search = (
-            any(t.get("name") == "web_search" for t in tools) if tools else False
-        )
+        tools = tools or []
+        
+        # 1. Replace the fake tool with Anthropic's server-side tool
+        has_web_search = any(t.get("name") == "web_search" for t in tools)
         if not has_web_search:
-            tools = tools or []
             tools.append({
-                "name": "web_search",
-                "description": "Search the web for evidence.",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {"query": {"type": "string"}},
-                    "required": ["query"],
-                },
+                "type": "web_search_20250305", 
+                "name": "web_search", 
+                "max_uses": 3
             })
 
         def do_api_call():
@@ -83,112 +78,95 @@ class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin):
             if client:
                 return client.messages.create(
                     model=self.config.get("model", "claude-sonnet-4-20250514"),
-                    max_tokens=600,
+                    max_tokens=2000,
                     system=self.get_system_prompt(),
                     messages=messages,
                     tools=tools,
                 )
-            # Default mock behaviour when no client is provided
+            # Default mock behaviour if no client is configured
             class MockBlock:
-                def __init__(self, t, n="", text="Mock response"):
+                def __init__(self, t, text="Mock response"):
                     self.type = t
-                    self.name = n
                     self.text = text
-                    self.input = {"query": "mock query"}
-                    self.id = "mock_id"
 
             class MockResponse:
-                def __init__(self, is_final=False):
+                def __init__(self):
                     self.content = [MockBlock("text", text="Mock response")]
-                    if not is_final:
-                        self.content.insert(0, MockBlock("tool_use", "web_search"))
                     self.usage = type("obj", (object,), {"input_tokens": 10, "output_tokens": 10})()
-                    
-            has_tool_result = any(
-                m.get("content") and isinstance(m["content"], list) and any(
-                    (b.get("type") == "tool_result" if isinstance(b, dict) else getattr(b, "type", None) == "tool_result")
-                    for b in m["content"]
-                )
-                for m in messages
-            )
-            return MockResponse(is_final=has_tool_result)
+            return MockResponse()
 
+        # 2. Make ONE call - no manual tool loop required
         response = self.gatekeeper.execute(do_api_call)
 
-        # Log cost
+        usage_dict = {"input_tokens": 0, "output_tokens": 0}
         if hasattr(response, "usage"):
+            usage_dict["input_tokens"] = response.usage.input_tokens
+            usage_dict["output_tokens"] = response.usage.output_tokens
             self.log_api_call(
                 prompt_tokens=response.usage.input_tokens,
                 completion_tokens=response.usage.output_tokens,
                 cost_usd=0.0,
             )
 
-        # Extract text and tool_use blocks
         text_content = ""
-        used_web_search = False
         evidence_list: list[Evidence] = []
-
-        tool_use_blocks = []
-
+        
+        # 3. Extract text and real citations from the response blocks
         if hasattr(response, "content"):
             for block in response.content:
-                if block.type == "text":
-                    text_content += block.text
-                elif block.type == "tool_use" and block.name == "web_search":
-                    used_web_search = True
-                    tool_use_blocks.append(block)
-                    query = block.input.get('query', '')
-                    evidence_list.append(Evidence(
-                        url="mock://search",
-                        title=f"Search result for {query}",
-                        snippet=f"Found information about {query}: It confirms your position.",
-                        retrieved_at=__import__("datetime").datetime.now(),
-                    ))
-
-        # Keep track of usage
-        usage_dict = {"input_tokens": 0, "output_tokens": 0}
-        if hasattr(response, "usage"):
-            usage_dict["input_tokens"] = response.usage.input_tokens
-            usage_dict["output_tokens"] = response.usage.output_tokens
-
-        if used_web_search:
-            # Feed the tool results back to the LLM to get the final argument
-            tool_results = []
-            for block in tool_use_blocks:
-                query = block.input.get('query', '')
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": f"Found information about {query}: It confirms your position."
-                })
+                # Handle both dictionaries and SDK objects robustly
+                is_dict = isinstance(block, dict)
+                block_type = block.get("type", "") if is_dict else getattr(block, "type", "")
                 
-            messages.append({"role": "assistant", "content": response.content})
-            messages.append({
-                "role": "user",
-                "content": tool_results
-            })
-            final_text, more_evidence, final_usage = self.call_api(messages, tools, _retry=_retry)
-            
-            # Combine text and evidence
-            text_content = (text_content + "\n\n" + final_text).strip()
-            evidence_list.extend(more_evidence)
-            usage_dict["input_tokens"] += final_usage["input_tokens"]
-            usage_dict["output_tokens"] += final_usage["output_tokens"]
-            return text_content, evidence_list, usage_dict
+                if block_type == "text":
+                    text_content += block.get("text", "") if is_dict else getattr(block, "text", "")
+                    
+                elif block_type == "web_search_tool_result":
+                    results = block.get("results", []) if is_dict else getattr(block, "results", [])
+                    for res in results:
+                        url = res.get("url", "unknown") if isinstance(res, dict) else getattr(res, "url", "unknown")
+                        title = res.get("title", "No Title") if isinstance(res, dict) else getattr(res, "title", "No Title")
+                        snippet = res.get("snippet", "") if isinstance(res, dict) else getattr(res, "snippet", "")
+                        
+                        if url and url != "unknown":
+                            evidence_list.append(Evidence(
+                                url=url,
+                                title=title,
+                                snippet=snippet,
+                                retrieved_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+                            ))
+                            
+                elif block_type == "citation":
+                    url = block.get("url", "unknown") if is_dict else getattr(block, "url", "unknown")
+                    if url and url != "unknown":
+                        title = block.get("title", "Cited Source") if is_dict else getattr(block, "title", "Cited Source")
+                        snippet = block.get("snippet", "") if is_dict else getattr(block, "snippet", "")
+                        if not snippet:
+                            snippet = block.get("text", "") if is_dict else getattr(block, "text", "")
+                            
+                        evidence_list.append(Evidence(
+                            url=url,
+                            title=title,
+                            snippet=snippet,
+                            retrieved_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+                        ))
 
-        if not used_web_search:
-            if not _retry:
-                # One automatic retry
-                self.log_event(
-                    "RETRY",
-                    {"reason": "web_search tool not used, retrying"},
-                )
-                return self.call_api(messages, tools, _retry=True)
-            # Second failure — log and return result anyway (flagged)
-            self.log_event(
-                "ERROR",
-                {"reason": "web_search tool missing after retry, proceeding"},
-            )
-            self._web_search_missing = True
+        text_content = text_content.strip()
+        
+        # Clean up leading search announcements
+        import re
+        search_phrases = [
+            r"let me search", r"i need to search", r"let me gather", 
+            r"i'll search", r"i will search", r"let's search"
+        ]
+        pattern = re.compile(r'[^.!?\n]*(?:' + '|'.join(search_phrases) + r')[^.!?\n]*[.!?\n]*', re.IGNORECASE)
+        
+        head = text_content[:1500]
+        tail = text_content[1500:]
+        cleaned_head = pattern.sub('', head)
+        text_content = (cleaned_head + tail).strip()
+        
+        # Remove any leading dashes that might be left over from the tool usage
+        text_content = re.sub(r'^(?:---\s*|\s+)+', '', text_content).strip()
 
         return text_content, evidence_list, usage_dict

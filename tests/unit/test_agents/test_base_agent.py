@@ -43,29 +43,9 @@ def test_call_api_routes_through_gatekeeper(fake_anthropic_client):
     assert text == "Mock response"
 
 
-def test_retry_on_missing_search(anthropic_response_factory, fake_anthropic_client):
-    """First failure triggers automatic retry; second failure sets flag."""
-    AnthropicContentBlock, AnthropicAPIResponse = anthropic_response_factory
-
-    client = fake_anthropic_client
-    # Simulate a response with no tool use blocks
-    client.messages.create.side_effect = None
-    client.messages.create.return_value = AnthropicAPIResponse([AnthropicContentBlock("text", text="Mock text")])
-    agent, _ = _make_agent(client=client)
-
-    text, evidence, usage = agent.call_api([], [])
-
-    # Should have been called twice (original + retry)
-    assert client.messages.create.call_count == 2
-    # Flag set after two failures
-    assert getattr(agent, "_web_search_missing", False) is True
-    assert text == "Mock text"
-    assert evidence == []
-
-
 def test_evidence_extracted_from_tool_result(fake_anthropic_client):
     agent, _ = _make_agent(client=fake_anthropic_client)
     text, evidence, usage = agent.call_api([], [])
     assert len(evidence) == 1
     assert evidence[0].url == "mock://search"
-    assert "mock" in evidence[0].title
+    assert "Mock" in evidence[0].title

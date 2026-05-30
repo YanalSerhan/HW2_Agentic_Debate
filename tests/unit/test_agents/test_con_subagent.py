@@ -14,11 +14,11 @@ def test_con_subagent_instantiates_and_responds(anthropic_response_factory, fake
     debate_config.get_logging_config.return_value = log_config
 
     client = fake_anthropic_client
-    client.messages.create.side_effect = [
-        AnthropicAPIResponse([AnthropicContentBlock("tool_use", "web_search")]),
-        AnthropicAPIResponse([AnthropicContentBlock("text", text="Mock counter argument")]),
-        AnthropicAPIResponse([AnthropicContentBlock("text", text="Mock counter argument")])
-    ]
+    client.messages.create.side_effect = None
+    client.messages.create.return_value = AnthropicAPIResponse([
+        AnthropicContentBlock("web_search_tool_result", results=[{"url": "mock://search", "title": "Mock", "snippet": "Mock"}]),
+        AnthropicContentBlock("text", text="Mock counter argument")
+    ])
     
     rate_limited_gatekeeper.execute.side_effect = lambda f, *args, **kwargs: f(*args, **kwargs)
     
@@ -34,16 +34,14 @@ def test_con_subagent_instantiates_and_responds(anthropic_response_factory, fake
     assert len(msg.evidence) == 1
     
     # Test agreement check exception
-    class MockAgreeResponse1:
-        content = [AnthropicContentBlock("tool_use", "web_search")]
+    class MockAgreeResponse:
+        content = [
+            AnthropicContentBlock("web_search_tool_result", results=[{"url": "mock://search"}]),
+            AnthropicContentBlock("text", text="I agree with you!")
+        ]
         usage = type('obj', (object,), {'input_tokens': 10, 'output_tokens': 10})()
 
-    class MockAgreeResponse2:
-        content = [AnthropicContentBlock("text", text="I agree with you!")]
-        usage = type('obj', (object,), {'input_tokens': 10, 'output_tokens': 10})()
-
-    client.messages.create.side_effect = [MockAgreeResponse1(), MockAgreeResponse2(), MockAgreeResponse2()]
-    client.messages.create.return_value = None
+    client.messages.create.return_value = MockAgreeResponse()
     from debate.agents.base_subagent import AgreementError
 
     with pytest.raises(AgreementError):

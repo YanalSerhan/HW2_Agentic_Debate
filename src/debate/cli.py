@@ -37,7 +37,7 @@ def run(
     # Initialize SDK
     sdk = DebateSDK(topic=topic, max_rounds=rounds)
     if model:
-        sdk.config_manager.config["model"] = model
+        sdk.config_manager._setup_config["model"] = model
 
     # Set up callback if verbose
     if verbose:

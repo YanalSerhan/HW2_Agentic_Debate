@@ -88,7 +88,8 @@ Transcript:
 
 Calculate the total score for PRO and CON (sum of the 4 dimensions, max 100).
 Ties are FORBIDDEN.
-Output a JSON object EXACTLY in this format:
+You must output ONLY valid JSON. Do not include any reasoning outside of the JSON. Do not include markdown code blocks. Start your response directly with '{' and end with '}'.
+Output exactly this format:
 {{
   "pro_score": 85.0,
   "con_score": 82.0,
