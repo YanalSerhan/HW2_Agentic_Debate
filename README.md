@@ -16,3 +16,7 @@ Check the status of the API Gatekeeper queue:
 ```bash
 uv run python src/main.py status
 ```
+
+## Prompt Engineering
+
+To see how we evolved our agents from generating basic responses to delivering rich, persona-driven, evidence-backed arguments, check out our [Prompt Engineering Log](prompts/prompt_log.md).
