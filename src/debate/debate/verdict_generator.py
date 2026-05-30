@@ -54,15 +54,21 @@ class VerdictGenerator:
 
     def _parse_json(self, text: str) -> dict:
         import re
-        text = re.sub(r'```json\s*|\s*```', '', text).strip()
+        import logging
+        # Strip markdown code blocks robustly
+        clean_text = re.sub(r'```(?:json)?\s*', '', text)
+        clean_text = re.sub(r'\s*```', '', clean_text).strip()
         try:
-            start_idx = text.find("{")
-            end_idx = text.rfind("}")
+            start_idx = clean_text.find("{")
+            end_idx = clean_text.rfind("}")
             if start_idx != -1 and end_idx != -1:
-                json_str = text[start_idx:end_idx+1]
+                json_str = clean_text[start_idx:end_idx+1]
                 return json.loads(json_str)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Failed to parse JSON verdict. Error: {e}. Raw text: {text}")
             pass
+            
+        logging.error(f"Failed to find JSON object in verdict. Raw text: {text}")
         return {}
 
     def _build_prompt(self, transcript: list[RoundResult]) -> str:

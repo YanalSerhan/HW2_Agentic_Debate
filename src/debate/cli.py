@@ -90,24 +90,11 @@ def replay(
     file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
 ):
     """Replay a saved debate transcript."""
-    try:
-        with open(file, "r") as f:
-            data = json.load(f)
-    except Exception as e:
-        console.print(f"[bold red]Failed to load file: {e}[/bold red]")
-        raise typer.Exit(1)
-        
-    print_header(data.get("topic", "Unknown"), len(data.get("rounds", [])))
+    from debate.replay.replayer import DebateReplayer
     
-    for rnd in data.get("rounds", []):
-        display_round(rnd["round_number"], rnd["pro_message"], rnd["con_message"])
-        time.sleep(1) # Small pause for effect
-        
-    # Reconstruct verdict for display
-    from debate.debate.verdict import Verdict
-    v_data = data.get("verdict", {})
-    if v_data:
-        display_verdict(Verdict(**v_data))
+    console.print(f"[bold green]Replaying debate from {file}...[/bold green]")
+    replayer = DebateReplayer()
+    replayer.replay(file)
 
 @app.command()
 def status():

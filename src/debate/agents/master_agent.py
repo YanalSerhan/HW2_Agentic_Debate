@@ -107,11 +107,22 @@ class MasterAgent(BaseAgent):
         text, _, _ = self.call_api(messages, tools=[])
         
         try:
-            # Strip markdown if present
-            clean_text = text.replace("```json", "").replace("```", "").strip()
+            import logging
+            import re
+            
+            # Strip markdown robustly
+            clean_text = re.sub(r'```(?:json)?\s*', '', text)
+            clean_text = re.sub(r'\s*```', '', clean_text).strip()
+            
+            start_idx = clean_text.find("{")
+            end_idx = clean_text.rfind("}")
+            if start_idx != -1 and end_idx != -1:
+                clean_text = clean_text[start_idx:end_idx+1]
+                
             data = json.loads(clean_text)
             return data.get("pro_score", 50), data.get("con_score", 50)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Failed to parse round score JSON. Error: {e}. Raw text: {text}")
             return 50, 50
 
     def deliver_verdict(self, transcript: list[RoundResult], total_tokens: int = 0, total_cost: float = 0.0) -> Verdict:
