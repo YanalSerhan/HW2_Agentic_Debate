@@ -1,7 +1,8 @@
-import pytest
 from unittest.mock import MagicMock
 
-from debate.agents.base_agent import BaseAgent, WebSearchNotUsedError
+import pytest
+
+from debate.agents.base_agent import BaseAgent
 from debate.constants import AgentRole
 from debate.shared.config import LoggingConfig
 

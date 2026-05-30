@@ -1,25 +1,25 @@
 import json
-from unittest.mock import MagicMock
 from datetime import datetime, timezone
-import pytest
+from unittest.mock import MagicMock
 
 from debate.constants import AgentRole
 from debate.debate.round_manager import RoundResult
 from debate.debate.verdict_generator import VerdictGenerator
 
+
 def _create_fake_master(pro_score=85.0, con_score=82.0, reasoning="Good debate", key_args=None):
     if key_args is None:
         key_args = ["Arg 1", "Arg 2", "Arg 3"]
-        
+
     master = MagicMock()
-    
+
     fake_json_response = json.dumps({
         "pro_score": pro_score,
         "con_score": con_score,
         "reasoning": reasoning,
         "key_winning_arguments": key_args
     })
-    
+
     # call_api returns (text, evidence, usage)
     master.call_api.return_value = (fake_json_response, [], {"input_tokens": 100, "output_tokens": 100})
     return master
@@ -33,9 +33,9 @@ def _make_transcript():
 def test_verdict_always_has_winner():
     master = _create_fake_master(pro_score=90.0, con_score=80.0)
     generator = VerdictGenerator(master)
-    
+
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
-    
+
     assert verdict.winner == AgentRole.PRO
     assert verdict.pro_score == 52.94
     assert verdict.con_score == 47.06
@@ -44,9 +44,9 @@ def test_tie_resolved_by_tiebreaker():
     # If the LLM returns a tie, VerdictGenerator must break it (rhetorical edge +5 to PRO typically)
     master = _create_fake_master(pro_score=85.0, con_score=85.0)
     generator = VerdictGenerator(master)
-    
+
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
-    
+
     # The tiebreaker gives +5 to pro making it 90 and 85, which normalizes to 51.43 and 48.57
     assert verdict.pro_score == 51.43
     assert verdict.con_score == 48.57
@@ -55,18 +55,18 @@ def test_tie_resolved_by_tiebreaker():
 def test_reasoning_paragraph_non_empty():
     master = _create_fake_master(reasoning="The Pro agent made superior arguments regarding X.")
     generator = VerdictGenerator(master)
-    
+
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
-    
+
     assert len(verdict.reasoning) > 0
     assert "superior arguments" in verdict.reasoning
 
 def test_key_winning_arguments_length_three():
     master = _create_fake_master(key_args=["Only one argument"])
     generator = VerdictGenerator(master)
-    
+
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
-    
+
     # VerdictGenerator should pad it to length 3
     assert len(verdict.key_winning_arguments) == 3
     assert verdict.key_winning_arguments[0] == "Only one argument"

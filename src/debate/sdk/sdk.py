@@ -1,27 +1,29 @@
+"""Debate SDK for programmatic access to the debate system."""
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
-import argparse
-import os
-from typing import Any
+import argparse  # noqa: E402
+import os  # noqa: E402
+from typing import Any  # noqa: E402
 
-from anthropic import Anthropic
-from debate.shared.config import ConfigManager
-from debate.shared.gatekeeper import ApiGatekeeper, QueueStatus
+from debate.shared.config import ConfigManager  # noqa: E402
+from debate.shared.gatekeeper import ApiGatekeeper, QueueStatus  # noqa: E402
 
 
 class DebateSDK:
-    """Main entry point for the Multi-Agent AI Debate System."""
+    """Debate SDK for programmatic access to the debate system."""
 
     def __init__(self, topic: str, config_path: str = "config/", max_rounds: int = 10):
         self.topic = topic
         self.max_rounds = max_rounds
         self.config_manager = ConfigManager(config_dir=config_path)
-        
+
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if api_key:
             self.config_manager.api_key = api_key
-            
+
         self.gatekeeper = ApiGatekeeper(self.config_manager.get_rate_limit_config())
         self.on_round = None
 

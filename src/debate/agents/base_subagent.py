@@ -32,7 +32,7 @@ class BaseSubagent(BaseAgent):
         # Retrieve context from knowledge base (assuming topic is self.position for simplicity if topic not provided, or fetch from session)
         # We will just pass self.position as the topic to retrieve relevant chunks
         rag_context = self.retriever.get_context_for_argument(self.persona, self.position, round_number)
-        
+
         return (
             f"You are defending the position: {self.position}\n"
             f"This is round {round_number}.\n"

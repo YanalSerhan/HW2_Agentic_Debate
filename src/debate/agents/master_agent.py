@@ -102,23 +102,23 @@ class MasterAgent(BaseAgent):
             "Output JSON with ONLY two integer keys 'pro_score' and 'con_score' from 0-100 reflecting "
             "the strength of these arguments. Do not include reasoning or markdown, JUST raw JSON."
         )
-        
+
         messages = [{"role": "user", "content": prompt}]
         text, _, _ = self.call_api(messages, tools=[])
-        
+
         try:
             import logging
             import re
-            
+
             # Strip markdown robustly
             clean_text = re.sub(r'```(?:json)?\s*', '', text)
             clean_text = re.sub(r'\s*```', '', clean_text).strip()
-            
+
             start_idx = clean_text.find("{")
             end_idx = clean_text.rfind("}")
             if start_idx != -1 and end_idx != -1:
                 clean_text = clean_text[start_idx:end_idx+1]
-                
+
             data = json.loads(clean_text)
             p = float(data.get("pro_score", 50))
             c = float(data.get("con_score", 50))

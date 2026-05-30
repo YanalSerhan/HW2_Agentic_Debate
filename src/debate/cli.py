@@ -5,7 +5,6 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -20,13 +19,13 @@ console = Console()
 def run(
     topic: str = typer.Option(..., "--topic", help="The debate topic"),
     rounds: int = typer.Option(10, "--rounds", min=3, help="Number of rounds"),
-    model: Optional[str] = typer.Option(None, "--model", help="LLM model to use"),
+    model: str | None = typer.Option(None, "--model", help="LLM model to use"),
     log_level: str = typer.Option("INFO", "--log-level", help="Logging level"),
     output_dir: str = typer.Option("results/", "--output-dir", help="Where to save transcript"),
     verbose: bool = typer.Option(False, "--verbose/--no-verbose", help="Show live debate vs. just verdict"),
 ):
     """Run a debate on a given topic."""
-    
+
     # Configure root logger
     numeric_level = getattr(logging, log_level.upper(), None)
     if isinstance(numeric_level, int):
@@ -44,30 +43,30 @@ def run(
         def on_round(rnd_num: int, pro_msg: str, con_msg: str):
             display_round(rnd_num, pro_msg, con_msg)
         sdk.on_round = on_round
-    
+
     console.print(f"[bold green]Starting debate ({rounds} rounds)...[/bold green]")
     start_time = time.time()
-    
+
     try:
         verdict = sdk.run_debate()
     except Exception as e:
         console.print(f"[bold red]Debate failed: {e}[/bold red]")
-        raise typer.Exit(1)
-        
+        raise typer.Exit(1) from e
+
     duration = time.time() - start_time
-    
+
     # Display verdict
     display_verdict(verdict)
-    
+
     # Save transcript
     transcript = sdk.get_transcript()
-    
+
     out_path = Path(output_dir)
     out_path.mkdir(parents=True, exist_ok=True)
-    
+
     topic_slug = re.sub(r'[^a-z0-9]+', '_', topic.lower()).strip('_')
     file_path = out_path / f"{verdict.session_id}_{topic_slug}.json"
-    
+
     data = {
         "session_id": verdict.session_id,
         "topic": topic,
@@ -79,10 +78,10 @@ def run(
         "total_tokens": verdict.total_tokens_used,
         "duration_seconds": duration,
     }
-    
+
     with open(file_path, "w") as f:
         json.dump(data, f, indent=2)
-        
+
     console.print(f"\n[dim]Transcript saved to: {file_path}[/dim]")
 
 @app.command()
@@ -91,7 +90,7 @@ def replay(
 ):
     """Replay a saved debate transcript."""
     from debate.replay.replayer import DebateReplayer
-    
+
     console.print(f"[bold green]Replaying debate from {file}...[/bold green]")
     replayer = DebateReplayer()
     replayer.replay(file)
@@ -112,7 +111,7 @@ def cost(
 ):
     """Analyze the cost of a saved debate transcript."""
     from debate.analysis.cost_analyzer import CostAnalyzer
-    
+
     analyzer = CostAnalyzer()
     analyzer.analyze(file)
     analyzer.print_report()
@@ -123,16 +122,16 @@ def visualize(
 ):
     """Generate visualization charts from a debate transcript."""
     from debate.visualization.score_timeline import ScoreTimeline
-    
+
     console.print(f"[bold green]Generating visualizations for {file}...[/bold green]")
     timeline = ScoreTimeline()
     result = timeline.generate(file)
-    
+
     if result.get("status") == "error":
         console.print(f"[bold red]Error: {result.get('message')}[/bold red]")
         raise typer.Exit(1)
-        
-    console.print(f"[bold cyan]Charts saved successfully![/bold cyan]")
+
+    console.print("[bold cyan]Charts saved successfully![/bold cyan]")
     for name, path in result.items():
         if name != "status":
             console.print(f"  - {name}: [dim]{path}[/dim]")

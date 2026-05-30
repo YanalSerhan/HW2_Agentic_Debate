@@ -41,12 +41,22 @@ cp .env.example .env
 uv sync
 ```
 
-### Run a Debate
+### Interactive Menu
+
+The primary way to use the app is via the interactive terminal menu. Just run `uv run python src/main.py` with no arguments to launch it!
 
 ```bash
-# Run a lively 5-round debate
-uv run python src/main.py run --topic "AI will inevitably destroy humanity" --rounds 5 --verbose
+uv run python src/main.py
 ```
+
+### Run a Debate via CLI
+
+```bash
+# Run a lively debate
+uv run python src/main.py run --topic "AI will inevitably destroy humanity" --rounds 10 --verbose
+```
+
+*Note: The system defaults to 10 rounds per the assignment. Rounds may be reduced to a minimum of 3 only to conserve API budget; the sample debate uses 3 rounds for this reason.*
 
 ### Replay a Debate
 If you want to view the stunning terminal UI output of a previously run debate (without incurring API costs!):

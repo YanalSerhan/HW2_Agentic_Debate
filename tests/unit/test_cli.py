@@ -1,6 +1,4 @@
 import json
-import os
-from pathlib import Path
 
 from typer.testing import CliRunner
 
@@ -14,12 +12,13 @@ def test_transcript_saved_to_results_dir(tmp_path, mocker):
     # Mock the SDK to avoid running a real debate
     patched_sdk = mocker.patch("debate.cli.DebateSDK")
     fake_sdk_instance = patched_sdk.return_value
-    
+
     # Setup mock return values
-    from debate.debate.verdict import Verdict
-    from debate.constants import AgentRole
     from datetime import datetime, timezone
-    
+
+    from debate.constants import AgentRole
+    from debate.debate.verdict import Verdict
+
     dummy_verdict = Verdict(
         session_id="test_sess_123",
         winner=AgentRole.PRO,
@@ -34,25 +33,25 @@ def test_transcript_saved_to_results_dir(tmp_path, mocker):
     )
     fake_sdk_instance.run_debate.return_value = dummy_verdict
     fake_sdk_instance.get_transcript.return_value = []
-    
+
     output_dir = tmp_path / "results"
-    
+
     result = runner.invoke(app, ["run", "--topic", "AI vs Human", "--rounds", "5", "--output-dir", str(output_dir)])
-    
+
     assert result.exit_code == 0
     assert output_dir.exists()
-    
+
     # Check if a file was created
     files = list(output_dir.glob("*.json"))
     assert len(files) == 1
-    
+
     # Check test_transcript_filename_contains_session_id
     assert "test_sess_123" in files[0].name
-    
+
     # Check test_transcript_is_valid_json
-    with open(files[0], "r") as f:
+    with open(files[0]) as f:
         data = json.load(f)
-        
+
     assert data["session_id"] == "test_sess_123"
     assert data["topic"] == "AI vs Human"
     assert "rounds" in data

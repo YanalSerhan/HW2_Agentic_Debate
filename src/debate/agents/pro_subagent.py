@@ -4,6 +4,7 @@ from debate.ipc.message import DebateMessage
 from debate.skills.pro_skill import ProSkill
 from debate.skills.skill_base import SkillBase
 
+
 class ProSubagent(BaseSubagent):
     """Pro position agent."""
 

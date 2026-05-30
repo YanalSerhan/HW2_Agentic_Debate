@@ -15,36 +15,36 @@ class VerdictGenerator:
 
     def generate_verdict(self, transcript: list[RoundResult], session_id: str, total_tokens: int, total_cost: float) -> Verdict:
         prompt = self._build_prompt(transcript)
-        
+
         # Ensure we don't fail if web search is missing, but MasterAgent is set up to retry and ignore.
         text, _, _ = self.master_agent.call_api(
             messages=[{"role": "user", "content": prompt}],
             tools=[]
         )
-        
+
         # Parse JSON from text
         data = self._parse_json(text)
-            
+
         pro_score = float(data.get("pro_score", 0.0))
         con_score = float(data.get("con_score", 0.0))
-        
+
         # Apply rhetorical edge tiebreaker
         if pro_score == con_score:
             pro_score += 5.0
-            
+
         # Normalize to sum to 100
         tot = pro_score + con_score
         if tot > 0:
             pro_score = round((pro_score / tot) * 100, 2)
             con_score = round((con_score / tot) * 100, 2)
-            
+
         winner = AgentRole.PRO if pro_score > con_score else AgentRole.CON
-        
+
         # Ensure key_winning_arguments has length 3 for tests
         key_args = data.get("key_winning_arguments", [])
         while len(key_args) < 3:
             key_args.append(f"Fallback argument {len(key_args)+1}")
-        
+
         return Verdict(
             session_id=session_id,
             winner=winner,
@@ -59,8 +59,8 @@ class VerdictGenerator:
         )
 
     def _parse_json(self, text: str) -> dict:
-        import re
         import logging
+        import re
         # Strip markdown code blocks robustly
         clean_text = re.sub(r'```(?:json)?\s*', '', text)
         clean_text = re.sub(r'\s*```', '', clean_text).strip()
@@ -73,7 +73,7 @@ class VerdictGenerator:
         except Exception as e:
             logging.error(f"Failed to parse JSON verdict. Error: {e}. Raw text: {text}")
             pass
-            
+
         logging.error(f"Failed to find JSON object in verdict. Raw text: {text}")
         return {}
 
@@ -81,7 +81,7 @@ class VerdictGenerator:
         transcript_text = ""
         for r in transcript:
             transcript_text += f"Round {r.round_number}:\nPro: {r.pro_message}\nCon: {r.con_message}\n\n"
-            
+
         return f"""You are the Father agent (Judge). Evaluate the following debate transcript.
 You must score each side on the following 4 dimensions (each out of 25):
 1. Rhetorical strength (0-25)

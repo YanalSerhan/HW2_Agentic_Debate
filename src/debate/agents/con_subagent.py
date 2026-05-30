@@ -4,6 +4,7 @@ from debate.ipc.message import DebateMessage
 from debate.skills.con_skill import ConSkill
 from debate.skills.skill_base import SkillBase
 
+
 class ConSubagent(BaseSubagent):
     """Con position agent."""
 

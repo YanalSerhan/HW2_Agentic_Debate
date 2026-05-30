@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class SkillBase(ABC):
     """Abstract base class for agent skills."""
     @abstractmethod

@@ -1,19 +1,14 @@
 """Unit tests for the debate loop in DebateSession (Phase 5)."""
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from debate.constants import MIN_ROUNDS, AgentRole, MessageType
-from debate.debate.agreement_detector import AgreementDetector
-from debate.debate.round_manager import RoundManager, RoundResult
 from debate.debate.session import DebateSession
 from debate.debate.verdict import Verdict
 from debate.ipc.ipc_channel import IPCChannel, IPCTimeoutError
 from debate.ipc.message import DebateMessage
 from debate.shared.config import ConfigManager
-
 
 # ---------------------------------------------------------------------------
 # helpers
@@ -101,8 +96,8 @@ def test_debate_runs_minimum_3_rounds():
     session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
 
     # Disable real process spawning
-    session.start_processes = MagicMock()
-    session.terminate_processes = MagicMock()
+    session.process_manager.start_processes = MagicMock()
+    session.process_manager.terminate_processes = MagicMock()
 
     verdict = session.run()
 
@@ -139,8 +134,8 @@ def test_debate_transcript_length_matches_rounds():
     session.father.set_ipc_send_channel(AgentRole.CON, session.father_to_con)
     session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
 
-    session.start_processes = MagicMock()
-    session.terminate_processes = MagicMock()
+    session.process_manager.start_processes = MagicMock()
+    session.process_manager.terminate_processes = MagicMock()
 
     verdict = session.run()
     transcript = session.get_transcript()
@@ -177,14 +172,14 @@ def test_agent_timeout_triggers_restart():
     session.father.set_ipc_send_channel(AgentRole.CON, session.father_to_con)
     session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
 
-    session.start_processes = MagicMock()
-    session.terminate_processes = MagicMock()
+    session.process_manager.start_processes = MagicMock()
+    session.process_manager.terminate_processes = MagicMock()
 
     # Stub _restart_child so it doesn't actually spawn a process
-    session._restart_child = MagicMock(return_value=True)
+    session.process_manager.restart_child = MagicMock(return_value=True)
 
     verdict = session.run()
-    session._restart_child.assert_called()
+    session.process_manager.restart_child.assert_called()
     assert isinstance(verdict, Verdict)
 
 
@@ -222,8 +217,8 @@ def test_agreement_detection_triggers_regeneration():
     session.father.set_ipc_send_channel(AgentRole.CON, session.father_to_con)
     session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
 
-    session.start_processes = MagicMock()
-    session.terminate_processes = MagicMock()
+    session.process_manager.start_processes = MagicMock()
+    session.process_manager.terminate_processes = MagicMock()
 
     verdict = session.run()
     assert isinstance(verdict, Verdict)
