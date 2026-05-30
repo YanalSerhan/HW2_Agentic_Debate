@@ -120,7 +120,13 @@ class MasterAgent(BaseAgent):
                 clean_text = clean_text[start_idx:end_idx+1]
                 
             data = json.loads(clean_text)
-            return data.get("pro_score", 50), data.get("con_score", 50)
+            p = float(data.get("pro_score", 50))
+            c = float(data.get("con_score", 50))
+            tot = p + c
+            if tot > 0:
+                p = round((p / tot) * 100, 2)
+                c = round((c / tot) * 100, 2)
+            return p, c
         except Exception as e:
             logging.error(f"Failed to parse round score JSON. Error: {e}. Raw text: {text}")
             return 50, 50

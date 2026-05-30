@@ -37,8 +37,8 @@ def test_verdict_always_has_winner():
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
     
     assert verdict.winner == AgentRole.PRO
-    assert verdict.pro_score == 90.0
-    assert verdict.con_score == 80.0
+    assert verdict.pro_score == 52.94
+    assert verdict.con_score == 47.06
 
 def test_tie_resolved_by_tiebreaker():
     # If the LLM returns a tie, VerdictGenerator must break it (rhetorical edge +5 to PRO typically)
@@ -47,9 +47,9 @@ def test_tie_resolved_by_tiebreaker():
     
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
     
-    # The tiebreaker in VerdictGenerator gives +5 to pro
-    assert verdict.pro_score == 90.0
-    assert verdict.con_score == 85.0
+    # The tiebreaker gives +5 to pro making it 90 and 85, which normalizes to 51.43 and 48.57
+    assert verdict.pro_score == 51.43
+    assert verdict.con_score == 48.57
     assert verdict.winner == AgentRole.PRO
 
 def test_reasoning_paragraph_non_empty():

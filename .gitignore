@@ -12,4 +12,3 @@ results/*.json
 .venv/
 prompts/
 MagicMock/
-assets/*.png

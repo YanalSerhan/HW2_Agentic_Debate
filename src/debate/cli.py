@@ -107,6 +107,17 @@ def status():
     console.print(f"Requests this hour: {status.requests_this_hour}")
 
 @app.command()
+def cost(
+    file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
+):
+    """Analyze the cost of a saved debate transcript."""
+    from debate.analysis.cost_analyzer import CostAnalyzer
+    
+    analyzer = CostAnalyzer()
+    analyzer.analyze(file)
+    analyzer.print_report()
+
+@app.command()
 def visualize(
     file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
 ):

@@ -32,6 +32,12 @@ class VerdictGenerator:
         if pro_score == con_score:
             pro_score += 5.0
             
+        # Normalize to sum to 100
+        tot = pro_score + con_score
+        if tot > 0:
+            pro_score = round((pro_score / tot) * 100, 2)
+            con_score = round((con_score / tot) * 100, 2)
+            
         winner = AgentRole.PRO if pro_score > con_score else AgentRole.CON
         
         # Ensure key_winning_arguments has length 3 for tests

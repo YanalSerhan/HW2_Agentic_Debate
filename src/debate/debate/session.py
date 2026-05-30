@@ -267,6 +267,12 @@ class DebateSession:
                 round_cost = (round_input_tokens / 1_000_000 * self.input_cost_per_m) + (round_output_tokens / 1_000_000 * self.output_cost_per_m)
                 self.total_cost += round_cost
                 
+                budget_usd = float(self.config.get("budget_usd", 1.0))
+                if self.total_cost >= budget_usd * 0.8:
+                    if not getattr(self, "_budget_warning_issued", False):
+                        logger.warning(f"BUDGET WARNING: 80% of budget (${budget_usd:.2f}) consumed! Current cost: ${self.total_cost:.2f}")
+                        self._budget_warning_issued = True
+                
                 result = RoundResult(
                     round_number=rnd,
                     pro_message=pro_msg.content,
