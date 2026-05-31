@@ -13,9 +13,35 @@ This system orchestrates a complex, multi-round debate using strict inter-proces
 
 At the end of the debate, Justice Ginsburg delivers a final parsed JSON verdict declaring the winner and the key winning arguments.
 
-## Visualization
+## 10-Round Showcase Debate: AI's Impact on Humanity
 
-The debate produces high-quality visualizations to trace the persuasion shifts over the rounds.
+We ran a full 10-round debate to demonstrate the system's capabilities and rigorous evidence standards. **Con won 54.2 to 45.8.**
+
+### Justice Ginsburg's Final Verdict
+> *"Con wins because Pro conflates theoretical potential with demonstrated reality. While Pro correctly identifies real productivity gains and wage premiums for AI-skilled workers, Con effectively exposes the logical flaw: these benefits accrue to those already positioned to capture them, while institutions designed to redistribute gains remain unbuilt. Pro's entire case depends on Phase III pharmaceutical trials arriving in 2026 to validate efficacy—yet even if successful, one approval does not prove systematic benefit. Con maintains evidentiary discipline throughout, acknowledging genuine wage and productivity data while demonstrating why their concentration among elite workers undermines Pro's 'humanity' claim. The burden of proof properly rests with Pro to show institutional reform will occur; Pro offers only exhortations that it must."*
+
+### Replay the Showcase (Free & Instant)
+You can view the stunning terminal UI output of this 10-round showcase without spending a single API token:
+```bash
+uv run python src/main.py replay --file results/showcase_10round_debate.json
+```
+*(Note: The system defaults to 10 rounds per the assignment. Rounds may be reduced to a minimum of 3 only to conserve API budget).*
+
+### Architectural Evidence: Star Topology
+The system uses a strict Star Topology over `multiprocessing.Queue`. Children can ONLY speak to the Father. Here is the IPC routing log proof from the showcase:
+
+| Sender | Recipient | Message Count |
+|--------|-----------|---------------|
+| Father | Con       | 134           |
+| Father | Pro       | 121           |
+| Con    | Father    | 44            |
+| Pro    | Father    | 35            |
+| Con    | Pro       | **0 (BLOCKED)** |
+| Pro    | Con       | **0 (BLOCKED)** |
+
+### Visualizations
+
+The system produces high-quality dynamic visualizations to trace persuasion shifts and token costs over the 10 rounds:
 
 ![Score Timeline](assets/score_timeline.png)
 
@@ -56,13 +82,6 @@ uv run python src/main.py
 uv run python src/main.py run --topic "AI will inevitably destroy humanity" --rounds 10 --verbose
 ```
 
-*Note: The system defaults to 10 rounds per the assignment. Rounds may be reduced to a minimum of 3 only to conserve API budget; the sample debate uses 3 rounds for this reason.*
-
-### Replay a Debate
-If you want to view the stunning terminal UI output of a previously run debate (without incurring API costs!):
-```bash
-uv run python src/main.py replay --file results/sample_debate.json
-```
 
 ## Cost Analysis
 
