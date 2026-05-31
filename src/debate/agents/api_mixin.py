@@ -101,19 +101,29 @@ class ApiMixin:
 
         text_content = text_content.strip()
 
-        # Clean up leading search announcements
+        # Clean up leading search announcements and thoughts
         search_phrases = [
             r"let me search", r"i need to search", r"let me gather",
-            r"i'll search", r"i will search", r"let's search"
+            r"i'll search", r"i will search", r"let's search",
+            r"i have the ammunition", r"i have the evidence", 
+            r"now i have", r"now let me", r"excellent\.",
+            r"arm myself with evidence"
         ]
-        pattern = re.compile(r'[^.!?\n]*(?:' + '|'.join(search_phrases) + r')[^.!?\n]*[.!?\n]*', re.IGNORECASE)
-
-        head = text_content[:1500]
-        tail = text_content[1500:]
-        cleaned_head = pattern.sub('', head)
-        text_content = (cleaned_head + tail).strip()
-
-        # Remove any leading dashes that might be left over from the tool usage
-        text_content = re.sub(r'^(?:---\s*|\s+)+', '', text_content).strip()
+        
+        # Pattern to match a leading sentence containing any of the search phrases
+        pattern = re.compile(r'^[^.!?\n]*(?:' + '|'.join(search_phrases) + r')[^.!?\n]*[.!?\n]+\s*', re.IGNORECASE)
+        
+        while True:
+            # Strip leading dashes and whitespace
+            text_content = re.sub(r'^(?:-+\s*|\s+)+', '', text_content)
+            
+            # Remove a leading sentence if it matches the pattern
+            new_text = pattern.sub('', text_content)
+            if new_text == text_content:
+                break
+            text_content = new_text
+            
+        # Final cleanup of any lingering dashes/whitespace just in case
+        text_content = re.sub(r'^(?:-+\s*|\s+)+', '', text_content).strip()
 
         return text_content, evidence_list, usage_dict
