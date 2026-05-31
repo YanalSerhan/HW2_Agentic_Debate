@@ -7,7 +7,7 @@ class ApiMixin:
     """Mixin providing LLM API calling capabilities for agents."""
 
     def call_api(
-        self, messages: list, tools: list, *, _retry: bool = False,
+        self, messages: list, tools: list, *, _retry: bool = False, max_tokens: int = 2000
     ) -> tuple[str, list[Evidence], dict]:
         """Call the LLM API through the gatekeeper."""
         tools = tools or []
@@ -26,7 +26,7 @@ class ApiMixin:
             if client:
                 return client.messages.create(
                     model=self.config.get("model", "claude-sonnet-4-20250514"),
-                    max_tokens=2000,
+                    max_tokens=max_tokens,
                     system=self.get_system_prompt(),
                     messages=messages,
                     tools=tools,

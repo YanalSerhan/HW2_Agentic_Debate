@@ -19,7 +19,8 @@ class VerdictGenerator:
         # Ensure we don't fail if web search is missing, but MasterAgent is set up to retry and ignore.
         text, _, _ = self.master_agent.call_api(
             messages=[{"role": "user", "content": prompt}],
-            tools=[]
+            tools=[],
+            max_tokens=4000
         )
 
         # Parse JSON from text
@@ -71,8 +72,20 @@ class VerdictGenerator:
                 json_str = clean_text[start_idx:end_idx+1]
                 return json.loads(json_str)
         except Exception as e:
-            logging.error(f"Failed to parse JSON verdict. Error: {e}. Raw text: {text}")
+            logging.warning(f"Failed to parse strict JSON verdict. Attempting partial recovery. Error: {e}")
             pass
+
+        # Fallback to regex extraction
+        pro_match = re.search(r'"pro_score"\s*:\s*([\d.]+)', clean_text)
+        con_match = re.search(r'"con_score"\s*:\s*([\d.]+)', clean_text)
+        if pro_match and con_match:
+            logging.info("Successfully recovered scores via regex fallback.")
+            return {
+                "pro_score": float(pro_match.group(1)),
+                "con_score": float(con_match.group(1)),
+                "reasoning": "Reasoning truncated but scores recovered.",
+                "key_winning_arguments": ["Scores recovered via regex fallback", "Reasoning truncated", "See raw log for partial text"]
+            }
 
         logging.error(f"Failed to find JSON object in verdict. Raw text: {text}")
         return {}
@@ -94,12 +107,13 @@ Transcript:
 
 Calculate the total score for PRO and CON (sum of the 4 dimensions, max 100).
 Ties are FORBIDDEN.
-You must output ONLY valid JSON. Do not include any reasoning outside of the JSON. Do not include markdown code blocks. Start your response directly with '{' and end with '}'.
+You must output ONLY valid JSON. Your response must START with the JSON object.
+Your reasoning must be 4-6 sentences maximum. Your key_winning_arguments must be short bullet phrases, not paragraphs.
 Output exactly this format:
 {{
   "pro_score": 85.0,
   "con_score": 82.0,
-  "reasoning": "A paragraph explaining why the winner won.",
-  "key_winning_arguments": ["Top argument 1", "Top argument 2", "Top argument 3"]
+  "key_winning_arguments": ["Short phrase 1", "Short phrase 2", "Short phrase 3"],
+  "reasoning": "A CONCISE 4-6 sentence explanation of why the winner won."
 }}
 """
