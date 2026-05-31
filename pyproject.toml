@@ -46,3 +46,9 @@ omit = ["src/main.py", "*/tests/*"]
 
 [tool.coverage.report]
 fail_under = 85
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "nbformat>=5.10.4",
+]

@@ -51,14 +51,14 @@ def test_api_mixin_cleanup():
             def __init__(self, t, text):
                 self.type = t
                 self.text = text
-                
+
         class MockResponse:
             def __init__(self, content_text):
                 self.content = [MockBlock("text", text=content_text)]
                 self.usage = type("obj", (object,), {"input_tokens": 10, "output_tokens": 10})()
-        
+
         agent.gatekeeper.execute.return_value = MockResponse(raw_text)
-        
+
         text_content, _, _ = agent.call_api(messages=[], tools=[])
-        
+
         assert text_content == expected

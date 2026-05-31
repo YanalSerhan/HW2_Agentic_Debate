@@ -1278,12 +1278,12 @@ Before advancing to the next phase, all items in the current phase must pass:
 ### Upcoming Tasks
 - [x] Phase 11: Replay command (re-render saved debate without API calls)
 - [x] Phase 12: Prompt engineering log (prompts/prompt_log.md with 5+ entries)
-- [x] Phase 13: Cost analysis (token tracking table, budget warnings)
-- [ ] Phase 14: Ruff compliance + file size check
-- [ ] Phase 15: Test coverage ≥85%
-- [ ] Phase 16: Notebook analysis (notebooks/debate_analysis.ipynb)
-- [ ] Phase 17: Cinematic README
-- [ ] Phase 18: Final hardening and submission checklist
+- [x] Phase 13: Cost analysis
+- [x] Phase 14: Ruff compliance + modular refactor + terminal menu
+- [x] Phase 15: Test coverage ≥85% (now 88%)
+- [x] Phase 16: Research analysis notebook
+- [ ] Phase 17: Final README polish + 10-round session evidence
+- [ ] Phase 18: Final hardening + submission checklist
 
 ## Nice-to-Have Improvements
 
