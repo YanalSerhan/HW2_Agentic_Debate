@@ -96,6 +96,23 @@ class SessionOrchestrator:
             logging.getLogger(__name__).warning(f"BUDGET WARNING: 80% of budget (${budget_usd:.2f}) consumed! Current cost: ${self.session.total_cost:.2f}")
             self.session._budget_warning_issued = True
 
+        if self.session.total_cost >= budget_usd:
+            import logging
+            logging.getLogger(__name__).error(f"BUDGET EXCEEDED: Cost ${self.session.total_cost:.2f} >= Budget ${budget_usd:.2f}. Aborting.")
+            # Calculate current scores to determine a winner early
+            pro_score = sum(r.pro_score for r in self.session.round_manager.get_transcript())
+            con_score = sum(r.con_score for r in self.session.round_manager.get_transcript())
+            winner = AgentRole.PRO if pro_score > con_score else AgentRole.CON if con_score > pro_score else AgentRole.FATHER
+            
+            return Verdict(
+                session_id=self.session.session_id, winner=winner,
+                pro_score=pro_score, con_score=con_score,
+                reasoning=f"Debate aborted because total cost (${self.session.total_cost:.2f}) reached the budget limit (${budget_usd:.2f}).",
+                key_winning_arguments=["Budget Limit Reached"],
+                round_count=rnd, total_tokens_used=self.session.total_tokens,
+                total_cost_usd=self.session.total_cost, timestamp=datetime.now(timezone.utc),
+            )
+
         result = RoundResult(round_number=rnd, pro_message=pro_msg.content, con_message=con_msg.content, timestamp=datetime.now(timezone.utc))
         pro_score, con_score = self.session.father.score_round(result)
         result.pro_score, result.con_score = pro_score, con_score

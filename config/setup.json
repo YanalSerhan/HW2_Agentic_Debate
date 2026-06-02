@@ -10,5 +10,5 @@
     "input_token_cost_per_million": 0.80,
     "output_token_cost_per_million": 4.00
   },
-  "budget_usd": 1.00
+  "budget_usd": 2.00
 }
