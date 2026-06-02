@@ -3,8 +3,8 @@
 *A fully autonomous, multi-agent debate framework where two legendary intellectual titans, backed by live web research, battle over any topic you choose — judged by the most meticulous legal mind in American history.*
 
 ![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
-![Coverage](https://img.shields.io/badge/coverage-86.24%25-brightgreen.svg)
-![Tests](https://img.shields.io/badge/tests-84/84_passing-brightgreen.svg)
+![Coverage](https://img.shields.io/badge/coverage-87.18%25-brightgreen.svg)
+![Tests](https://img.shields.io/badge/tests-91/91_passing-brightgreen.svg)
 ![Ruff](https://img.shields.io/badge/ruff-100%25_clean-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.00-informational.svg)
@@ -60,7 +60,7 @@ This project doesn't just satisfy the assignment requirements — it **exceeds e
 | No sibling IPC | No direct child-to-child | Enforced at the code level — `IPCMixin.send_to_father()` raises `IPCError` if routing is wrong |
 | Unique skills | 2 distinct skills | 2 deeply crafted `.skill.md` system prompts + Python companions, dynamically assigned by `RoleAssigner` |
 | Verdict | Win/lose with score | 4-dimensional scoring rubric, regex fallback JSON parser, tie-breaking algorithm, forfeit handling |
-| Test coverage | ≥ 85% | **86.24% coverage, 84/84 tests passing** |
+| Test coverage | ≥ 85% | **87.18% coverage, 91/91 tests passing** |
 | Linting | Ruff clean | **Zero violations** across E, F, W, I, N, UP, B, C4, SIM rule sets |
 | File size | ≤ 150 lines | Every source file strictly enforced ≤ 150 lines |
 | Config | No hardcoded values | 3 external JSON config files — zero hardcoded strings, secrets, or model names |
@@ -492,9 +492,9 @@ Scores are normalized so they always sum to 100. This feeds the score timeline v
 
 ### Budget Warning
 
-When cumulative cost reaches 80% of `budget_usd` (default `$1.00`), a `WARNING` is logged:
+When cumulative cost reaches 80% of `budget_usd` (default `$2.00`), a `WARNING` is logged:
 ```
-BUDGET WARNING: 80% of budget ($1.00) consumed! Current cost: $0.80
+BUDGET WARNING: 80% of budget ($2.00) consumed! Current cost: $1.60
 ```
 
 ---
@@ -555,56 +555,57 @@ HW2_Agentic_Debate/
 ├── src/
 │   ├── main.py                         # Entrypoint — routes to CLI or menu
 │   └── debate/
-│       ├── agents/
-│       │   ├── base_agent.py           # Abstract BaseAgent (LoggingMixin + WatchdogMixin + IPCMixin)
-│       │   ├── api_mixin.py            # ApiMixin — LLM call, web search extraction, text cleanup
-│       │   ├── base_subagent.py        # Abstract BaseSubagent — argument generation loop
-│       │   ├── pro_subagent.py         # ProSubagent — Hitchens persona
-│       │   ├── con_subagent.py         # ConSubagent — Chomsky persona
-│       │   └── master_agent.py         # MasterAgent — RBG judge, orchestrator, verdict delivery
-│       ├── debate/
-│       │   ├── session.py              # DebateSession — spawns processes, manages lifecycle
-│       │   ├── session_orchestrator.py # Round-by-round message coordination
-│       │   ├── process_manager.py      # Process spawn, restart, and health management
-│       │   ├── round_manager.py        # RoundResult tracking and transcript accumulation
-│       │   ├── verdict.py              # Verdict Pydantic model
-│       │   ├── verdict_generator.py    # Builds prompt, calls API, parses verdict JSON
-│       │   └── agreement_detector.py  # Qualifier-aware agreement/capitulation detection
-│       ├── ipc/
-│       │   ├── message.py              # DebateMessage + Evidence Pydantic models
-│       │   ├── ipc_channel.py          # IPCChannel over multiprocessing.Queue
-│       │   ├── ipc_mixin.py            # IPCMixin — routing enforcement + send/receive
-│       │   └── validator.py            # JSONProtocolValidator
-│       ├── shared/
+│       ├── services/                   # Business logic layer
+│       │   ├── agents/
+│       │   │   ├── base_agent.py       # Abstract BaseAgent (LoggingMixin + WatchdogMixin + IPCMixin)
+│       │   │   ├── api_mixin.py        # ApiMixin — LLM call, web search extraction, text cleanup
+│       │   │   ├── base_subagent.py    # Abstract BaseSubagent — argument generation loop
+│       │   │   ├── pro_subagent.py     # ProSubagent — Hitchens persona
+│       │   │   ├── con_subagent.py     # ConSubagent — Chomsky persona
+│       │   │   └── master_agent.py     # MasterAgent — RBG judge, orchestrator, verdict delivery
+│       │   ├── debate/
+│       │   │   ├── session.py          # DebateSession — spawns processes, manages lifecycle
+│       │   │   ├── session_orchestrator.py # Round-by-round message coordination
+│       │   │   ├── process_manager.py  # Process spawn, restart, and health management
+│       │   │   ├── round_manager.py    # RoundResult tracking and transcript accumulation
+│       │   │   ├── verdict.py          # Verdict Pydantic model
+│       │   │   ├── verdict_generator.py# Builds prompt, calls API, parses verdict JSON
+│       │   │   └── agreement_detector.py # Qualifier-aware agreement/capitulation detection
+│       │   ├── ipc/
+│       │   │   ├── message.py          # DebateMessage + Evidence Pydantic models
+│       │   │   ├── ipc_channel.py      # IPCChannel over multiprocessing.Queue
+│       │   │   ├── ipc_mixin.py        # IPCMixin — routing enforcement + send/receive
+│       │   │   └── validator.py        # JSONProtocolValidator
+│       │   ├── skills/
+│       │   │   ├── skill_base.py       # Abstract SkillBase
+│       │   │   ├── pro_skill.py        # ProSkill Python companion
+│       │   │   ├── pro_skill.skill.md  # Hitchens system prompt (4.3KB of pure craft)
+│       │   │   ├── con_skill.py        # ConSkill Python companion
+│       │   │   ├── con_skill.skill.md  # Chomsky system prompt (5.1KB of pure craft)
+│       │   │   ├── router_skill.py     # RouterSkill
+│       │   │   └── router_skill.skill.md # Router skill prompt
+│       │   ├── rag/
+│       │   │   ├── role_assigner.py    # Topic affinity scoring → persona assignment
+│       │   │   └── retriever.py        # Context retrieval helpers
+│       │   ├── ui/
+│       │   │   └── display.py          # Rich terminal components (header, round, verdict)
+│       │   ├── replay/
+│       │   │   └── replayer.py         # DebateReplayer — free zero-cost UI replay
+│       │   ├── visualization/
+│       │   │   └── score_timeline.py   # ScoreTimeline — 3 Matplotlib charts
+│       │   └── analysis/
+│       │       └── cost_analyzer.py    # CostAnalyzer — cost report + projections
+│       ├── sdk/
+│       │   └── sdk.py                  # DebateSDK — single public entry point
+│       ├── shared/                     # Shared utilities
 │       │   ├── config.py               # ConfigManager — loads 3 JSON config files
+│       │   ├── constants.py            # AgentRole, MessageType, DebateStatus enums
 │       │   ├── gatekeeper.py           # ApiGatekeeper — rate limiting + retries + FIFO queue
 │       │   ├── logging_mixin.py        # LoggingMixin + LineRotatingLogger
 │       │   ├── watchdog.py             # WatchdogMixin — daemon thread process monitor
 │       │   └── version.py              # VERSION = "1.00"
-│       ├── skills/
-│       │   ├── skill_base.py           # Abstract SkillBase
-│       │   ├── pro_skill.py            # ProSkill Python companion
-│       │   ├── pro_skill.skill.md      # Hitchens system prompt (4.3KB of pure craft)
-│       │   ├── con_skill.py            # ConSkill Python companion
-│       │   ├── con_skill.skill.md      # Chomsky system prompt (5.1KB of pure craft)
-│       │   ├── router_skill.py         # RouterSkill
-│       │   └── router_skill.skill.md   # Router skill prompt
-│       ├── rag/
-│       │   ├── role_assigner.py        # Topic affinity scoring → persona assignment
-│       │   └── retriever.py            # Context retrieval helpers
-│       ├── sdk/
-│       │   └── sdk.py                  # DebateSDK — single public entry point
-│       ├── ui/
-│       │   └── display.py              # Rich terminal components (header, round, verdict)
-│       ├── replay/
-│       │   └── replayer.py             # DebateReplayer — free zero-cost UI replay
-│       ├── visualization/
-│       │   └── score_timeline.py       # ScoreTimeline — 3 Matplotlib charts
-│       ├── analysis/
-│       │   └── cost_analyzer.py        # CostAnalyzer — cost report + projections
 │       ├── cli.py                      # Typer CLI (run, replay, visualize, cost, status)
-│       ├── menu.py                     # Interactive Rich terminal menu
-│       └── constants.py                # AgentRole, MessageType, DebateStatus enums
+│       └── menu.py                     # Interactive Rich terminal menu
 ├── tests/
 │   ├── conftest.py                     # Shared pytest fixtures
 │   ├── unit/
@@ -676,7 +677,7 @@ All configuration is externalized — zero hardcoded values in source code.
     "input_token_cost_per_million": 0.80,
     "output_token_cost_per_million": 4.00
   },
-  "budget_usd": 1.00
+  "budget_usd": 2.00
 }
 ```
 
@@ -719,7 +720,7 @@ DEBATE_TIMEOUT_SECONDS=120
 
 ## Testing & Quality
 
-### Test Suite: 81/81 Tests Passing
+### Test Suite: 91/91 Tests Passing
 
 The test suite is organized in a strict unit/integration split across 9 test packages:
 
@@ -763,8 +764,8 @@ uv run pytest tests/unit/test_shared/ -v
 
 | Gate | Requirement | Status |
 |---|---|---|
-| Test Coverage | ≥ 85% | **86.24%** ✅ |
-| Tests Passing | 100% | **84/84** ✅ |
+| Test Coverage | ≥ 85% | **87.18%** ✅ |
+| Tests Passing | 100% | **91/91** ✅ |
 | Ruff (E, F, W, I, N, UP, B, C4, SIM) | 0 violations | **0** ✅ |
 | Max file length | ≤ 150 lines | **Enforced** ✅ |
 | No hardcoded config | All in JSON | **Enforced** ✅ |
