@@ -28,7 +28,7 @@ class DebateSDK:
         self.on_round = None
 
         # Late import to allow Phase 2 tests to pass without fully implementing Phase 4
-        from debate.debate.session import DebateSession
+        from debate.services.debate.session import DebateSession
         self.session = DebateSession(
             topic=self.topic,
             config=self.config_manager,

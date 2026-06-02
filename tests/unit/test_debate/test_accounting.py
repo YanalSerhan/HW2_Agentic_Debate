@@ -2,10 +2,10 @@ import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-from debate.constants import AgentRole, MessageType
-from debate.debate.session import DebateSession
-from debate.ipc.message import DebateMessage
+from debate.services.debate.session import DebateSession
+from debate.services.ipc.message import DebateMessage
 from debate.shared.config import ConfigManager
+from debate.shared.constants import AgentRole, MessageType
 
 
 def _make_msg(role, input_tokens, output_tokens, round_num=1):

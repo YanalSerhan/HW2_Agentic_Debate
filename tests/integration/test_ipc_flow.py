@@ -5,11 +5,11 @@ from datetime import datetime
 
 import pytest
 
-from debate.agents.master_agent import MasterAgent
-from debate.constants import AgentRole, MessageType
-from debate.ipc.ipc_channel import IPCChannel, IPCTimeoutError
-from debate.ipc.message import DebateMessage
+from debate.services.agents.master_agent import MasterAgent
+from debate.services.ipc.ipc_channel import IPCChannel, IPCTimeoutError
+from debate.services.ipc.message import DebateMessage
 from debate.shared.config import ConfigManager
+from debate.shared.constants import AgentRole, MessageType
 from debate.shared.gatekeeper import ApiGatekeeper
 
 

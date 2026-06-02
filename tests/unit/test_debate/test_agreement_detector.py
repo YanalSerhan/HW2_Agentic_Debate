@@ -1,6 +1,6 @@
 import pytest
 
-from debate.debate.agreement_detector import AgreementDetector
+from debate.services.debate.agreement_detector import AgreementDetector
 
 
 @pytest.fixture

@@ -1,8 +1,8 @@
-from debate.agents.base_subagent import BaseSubagent
-from debate.constants import AgentRole, MessageType
-from debate.ipc.message import DebateMessage
-from debate.skills.pro_skill import ProSkill
-from debate.skills.skill_base import SkillBase
+from debate.services.agents.base_subagent import BaseSubagent
+from debate.services.ipc.message import DebateMessage
+from debate.services.skills.pro_skill import ProSkill
+from debate.services.skills.skill_base import SkillBase
+from debate.shared.constants import AgentRole, MessageType
 
 
 class ProSubagent(BaseSubagent):
@@ -18,7 +18,7 @@ class ProSubagent(BaseSubagent):
 
     def get_system_prompt(self) -> str:
         if getattr(self, "persona", "hitchens") == "chomsky":
-            from debate.skills.con_skill import ConSkill
+            from debate.services.skills.con_skill import ConSkill
             self._skill = ConSkill()
         return f"{self._skill.load_prompt()}\nPosition: {self.position}"
 

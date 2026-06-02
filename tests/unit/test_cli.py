@@ -16,8 +16,8 @@ def test_transcript_saved_to_results_dir(tmp_path, mocker):
     # Setup mock return values
     from datetime import datetime, timezone
 
-    from debate.constants import AgentRole
-    from debate.debate.verdict import Verdict
+    from debate.services.debate.verdict import Verdict
+    from debate.shared.constants import AgentRole
 
     dummy_verdict = Verdict(
         session_id="test_sess_123",

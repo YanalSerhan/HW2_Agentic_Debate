@@ -8,7 +8,6 @@ dist/
 htmlcov/
 logs/
 results/*.json
-!results/sample_debate.json
+!results/showcase_10round_debate.json
 .venv/
-prompts/
 MagicMock/

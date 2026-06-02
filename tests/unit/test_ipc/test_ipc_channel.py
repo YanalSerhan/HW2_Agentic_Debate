@@ -4,9 +4,9 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from debate.constants import AgentRole, MessageType
-from debate.ipc.ipc_channel import IPCChannel, IPCQueueFullError, IPCTimeoutError
-from debate.ipc.message import DebateMessage
+from debate.services.ipc.ipc_channel import IPCChannel, IPCQueueFullError, IPCTimeoutError
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole, MessageType
 
 
 def create_valid_message():

@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock, patch
 
-from debate.constants import AgentRole
-from debate.debate.process_manager import ProcessManager
+from debate.services.debate.process_manager import ProcessManager
+from debate.shared.constants import AgentRole
 
 
-@patch("debate.debate.process_manager.multiprocessing.Process")
+@patch("debate.services.debate.process_manager.multiprocessing.Process")
 def test_process_manager_lifecycle(mock_process_cls):
     mock_process = MagicMock()
     mock_process.is_alive.return_value = True
@@ -28,7 +28,7 @@ def test_process_manager_lifecycle(mock_process_cls):
     assert mock_process.join.call_count == 2
     mock_father.stop_watchdog.assert_called_once()
 
-@patch("debate.debate.process_manager.multiprocessing.Process")
+@patch("debate.services.debate.process_manager.multiprocessing.Process")
 def test_process_manager_restart(mock_process_cls):
     mock_process = MagicMock()
     mock_process.is_alive.return_value = True

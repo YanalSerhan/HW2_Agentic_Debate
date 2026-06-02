@@ -1,12 +1,12 @@
 import logging
 import multiprocessing
 
-from debate.agents.con_subagent import ConSubagent
-from debate.agents.pro_subagent import ProSubagent
-from debate.constants import AgentRole
-from debate.ipc.ipc_channel import IPCChannel, IPCTimeoutError
-from debate.rag.role_assigner import RoleAssigner
+from debate.services.agents.con_subagent import ConSubagent
+from debate.services.agents.pro_subagent import ProSubagent
+from debate.services.ipc.ipc_channel import IPCChannel, IPCTimeoutError
+from debate.services.rag.role_assigner import RoleAssigner
 from debate.shared.config import ConfigManager
+from debate.shared.constants import AgentRole
 from debate.shared.gatekeeper import ApiGatekeeper
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class ProcessManager:
         self.pro_process.start()
         self.con_process.start()
         timeout_sec = float(self.config.get("timeout_seconds", 30.0))
-        self.father.start_watchdog(timeout=timeout_sec, process=self.pro_process)
+        self.father.start_watchdog(timeout=timeout_sec, process=[self.pro_process, self.con_process])
 
     def terminate_processes(self):
         for proc in (self.pro_process, self.con_process):

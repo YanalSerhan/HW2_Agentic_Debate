@@ -2,9 +2,9 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from debate.constants import AgentRole
-from debate.debate.round_manager import RoundResult
-from debate.debate.verdict import Verdict
+from debate.services.debate.round_manager import RoundResult
+from debate.services.debate.verdict import Verdict
+from debate.shared.constants import AgentRole
 
 
 class VerdictGenerator:

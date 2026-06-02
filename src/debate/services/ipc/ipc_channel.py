@@ -1,7 +1,7 @@
 import multiprocessing
 import queue
 
-from debate.ipc.message import DebateMessage
+from debate.services.ipc.message import DebateMessage
 
 
 class IPCTimeoutError(Exception):

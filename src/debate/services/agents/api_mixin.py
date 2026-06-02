@@ -1,6 +1,6 @@
 import re
 
-from debate.ipc.message import Evidence
+from debate.services.ipc.message import Evidence
 
 
 class ApiMixin:
@@ -25,7 +25,7 @@ class ApiMixin:
             client = self._get_client()
             if client:
                 return client.messages.create(
-                    model=self.config.get("model", "claude-sonnet-4-20250514"),
+                    model=self.config.get("model", "claude-haiku-4-5-20251001"),
                     max_tokens=max_tokens,
                     system=self.get_system_prompt(),
                     messages=messages,

@@ -1,6 +1,6 @@
 import json
 
-from debate.replay.replayer import DebateReplayer
+from debate.services.replay.replayer import DebateReplayer
 
 
 def test_debate_replayer(tmp_path, capsys, monkeypatch):

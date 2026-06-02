@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from debate.constants import AgentRole
+from debate.shared.constants import AgentRole
 
 
 class Verdict(BaseModel):

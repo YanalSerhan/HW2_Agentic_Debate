@@ -10,7 +10,7 @@ import typer
 from rich.console import Console
 
 from debate.sdk.sdk import DebateSDK
-from debate.ui.display import display_round, display_verdict, print_header
+from debate.services.ui.display import display_round, display_verdict, print_header
 
 app = typer.Typer(help="Multi-Agent AI Debate System CLI")
 console = Console()
@@ -89,7 +89,7 @@ def replay(
     file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
 ):
     """Replay a saved debate transcript."""
-    from debate.replay.replayer import DebateReplayer
+    from debate.services.replay.replayer import DebateReplayer
 
     console.print(f"[bold green]Replaying debate from {file}...[/bold green]")
     replayer = DebateReplayer()
@@ -110,7 +110,7 @@ def cost(
     file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
 ):
     """Analyze the cost of a saved debate transcript."""
-    from debate.analysis.cost_analyzer import CostAnalyzer
+    from debate.services.analysis.cost_analyzer import CostAnalyzer
 
     analyzer = CostAnalyzer()
     analyzer.analyze(file)
@@ -121,7 +121,7 @@ def visualize(
     file: str = typer.Option(..., "--file", help="Path to transcript JSON file")
 ):
     """Generate visualization charts from a debate transcript."""
-    from debate.visualization.score_timeline import ScoreTimeline
+    from debate.services.visualization.score_timeline import ScoreTimeline
 
     console.print(f"[bold green]Generating visualizations for {file}...[/bold green]")
     timeline = ScoreTimeline()

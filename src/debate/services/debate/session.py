@@ -3,15 +3,15 @@ import logging
 import multiprocessing
 import uuid
 
-from debate.agents.master_agent import MasterAgent
-from debate.constants import MIN_ROUNDS, AgentRole
-from debate.debate.agreement_detector import AgreementDetector
-from debate.debate.process_manager import ProcessManager
-from debate.debate.round_manager import RoundManager, RoundResult
-from debate.debate.session_orchestrator import SessionOrchestrator
-from debate.debate.verdict import Verdict
-from debate.ipc.ipc_channel import IPCChannel
+from debate.services.agents.master_agent import MasterAgent
+from debate.services.debate.agreement_detector import AgreementDetector
+from debate.services.debate.process_manager import ProcessManager
+from debate.services.debate.round_manager import RoundManager, RoundResult
+from debate.services.debate.session_orchestrator import SessionOrchestrator
+from debate.services.debate.verdict import Verdict
+from debate.services.ipc.ipc_channel import IPCChannel
 from debate.shared.config import ConfigManager
+from debate.shared.constants import MIN_ROUNDS, AgentRole
 from debate.shared.gatekeeper import ApiGatekeeper
 
 logger = logging.getLogger(__name__)

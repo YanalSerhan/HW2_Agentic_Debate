@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-from debate.agents.api_mixin import ApiMixin
-from debate.constants import AgentRole
-from debate.ipc.ipc_mixin import IPCMixin
-from debate.ipc.message import DebateMessage
+from debate.services.agents.api_mixin import ApiMixin
+from debate.services.ipc.ipc_mixin import IPCMixin
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole
 from debate.shared.logging_mixin import LoggingMixin
 from debate.shared.watchdog import WatchdogMixin
 

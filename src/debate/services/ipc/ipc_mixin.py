@@ -1,7 +1,7 @@
 
-from debate.constants import AgentRole
-from debate.ipc.ipc_channel import IPCChannel
-from debate.ipc.message import DebateMessage
+from debate.services.ipc.ipc_channel import IPCChannel
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole
 
 
 class IPCError(Exception):

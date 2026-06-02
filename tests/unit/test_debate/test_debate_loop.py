@@ -3,12 +3,12 @@ import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-from debate.constants import MIN_ROUNDS, AgentRole, MessageType
-from debate.debate.session import DebateSession
-from debate.debate.verdict import Verdict
-from debate.ipc.ipc_channel import IPCChannel, IPCTimeoutError
-from debate.ipc.message import DebateMessage
+from debate.services.debate.session import DebateSession
+from debate.services.debate.verdict import Verdict
+from debate.services.ipc.ipc_channel import IPCChannel, IPCTimeoutError
+from debate.services.ipc.message import DebateMessage
 from debate.shared.config import ConfigManager
+from debate.shared.constants import MIN_ROUNDS, AgentRole, MessageType
 
 # ---------------------------------------------------------------------------
 # helpers

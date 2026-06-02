@@ -2,9 +2,9 @@ import json
 import uuid
 from datetime import datetime
 
-from debate.constants import AgentRole, MessageType
-from debate.ipc.message import DebateMessage
-from debate.ipc.validator import JSONProtocolValidator
+from debate.services.ipc.message import DebateMessage
+from debate.services.ipc.validator import JSONProtocolValidator
+from debate.shared.constants import AgentRole, MessageType
 
 
 def test_valid_json_passes_validation():

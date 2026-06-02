@@ -86,8 +86,11 @@ def test_raises_on_missing_required_key(temp_config_dir):
     with pytest.raises(ConfigurationError, match="Missing required key 'model'"):
         ConfigManager(config_dir=str(temp_config_dir))
 
-def test_version_validated_on_load(temp_config_dir):
-    # Alter version
+def test_version_validated_on_load(temp_config_dir, caplog):
+    """Version mismatch should log a WARNING and continue (backwards compatible)."""
+    import logging
+
+    # Alter version in setup.json
     setup_file = temp_config_dir / "setup.json"
     with open(setup_file) as f:
         data = json.load(f)
@@ -95,5 +98,11 @@ def test_version_validated_on_load(temp_config_dir):
     with open(setup_file, "w") as f:
         json.dump(data, f)
 
-    with pytest.raises(ConfigurationError, match="Invalid or missing version"):
-        ConfigManager(config_dir=str(temp_config_dir))
+    # Should NOT raise — must remain backwards compatible
+    with caplog.at_level(logging.WARNING):
+        manager = ConfigManager(config_dir=str(temp_config_dir))
+
+    # Warning must be emitted
+    assert any("Version mismatch" in r.message for r in caplog.records)
+    # ConfigManager must still be functional
+    assert manager.get("max_rounds") == 10

@@ -1,12 +1,12 @@
 import uuid
 from datetime import datetime, timezone
 
-from debate.agents.base_agent import BaseAgent
-from debate.constants import AgentRole, MessageType
-from debate.debate.round_manager import RoundResult
-from debate.debate.verdict import Verdict
-from debate.debate.verdict_generator import VerdictGenerator
-from debate.ipc.message import DebateMessage
+from debate.services.agents.base_agent import BaseAgent
+from debate.services.debate.round_manager import RoundResult
+from debate.services.debate.verdict import Verdict
+from debate.services.debate.verdict_generator import VerdictGenerator
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole, MessageType
 
 
 class MasterAgent(BaseAgent):

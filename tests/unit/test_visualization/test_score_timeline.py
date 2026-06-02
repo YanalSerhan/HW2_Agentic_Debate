@@ -4,7 +4,7 @@ import matplotlib
 
 matplotlib.use('Agg')
 
-from debate.visualization.score_timeline import ScoreTimeline
+from debate.services.visualization.score_timeline import ScoreTimeline
 
 
 def test_score_timeline_generate(tmp_path, monkeypatch):

@@ -1,10 +1,10 @@
 import uuid
 from datetime import datetime, timezone
 
-from debate.constants import AgentRole, MessageType
-from debate.debate.verdict import Verdict
-from debate.ipc.ipc_channel import IPCTimeoutError
-from debate.ipc.message import DebateMessage
+from debate.services.debate.verdict import Verdict
+from debate.services.ipc.ipc_channel import IPCTimeoutError
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole, MessageType
 
 MAX_AGREEMENT_RETRIES = 2
 
@@ -67,7 +67,7 @@ class SessionOrchestrator:
         )
 
     def run_single_round(self, rnd: int) -> Verdict | None:
-        from debate.debate.round_manager import RoundResult
+        from debate.services.debate.round_manager import RoundResult
         self.session.father._current_round = rnd
         pro_msg = self.request_from_child(AgentRole.PRO, MessageType.ARGUMENT, rnd, timeout=120.0)
         if pro_msg is None:

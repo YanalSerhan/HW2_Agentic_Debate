@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from debate.constants import MIN_ROUNDS
+from debate.shared.constants import MIN_ROUNDS
 
 
 class RoundResult(BaseModel):

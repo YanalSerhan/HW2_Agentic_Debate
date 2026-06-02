@@ -50,13 +50,27 @@ class ConfigManager:
         self._rate_limits = self._load_json("rate_limits.json")
         self._logging_config = self._load_json("logging_config.json")
 
-        # Validate versions
+        # Validate versions — log WARNING on mismatch (backwards compatible)
+        import logging
+        _log = logging.getLogger(__name__)
         if self._setup_config.get("version") != "1.00":
-            raise ConfigurationError("Invalid or missing version in setup.json")
+            _log.warning(
+                "Version mismatch in setup.json: expected '1.00', "
+                "got '%s'. Proceeding with backwards compatibility.",
+                self._setup_config.get("version"),
+            )
         if self._rate_limits.get("rate_limits", {}).get("version") != "1.00":
-            raise ConfigurationError("Invalid or missing version in rate_limits.json")
+            _log.warning(
+                "Version mismatch in rate_limits.json: expected '1.00', "
+                "got '%s'. Proceeding with backwards compatibility.",
+                self._rate_limits.get("rate_limits", {}).get("version"),
+            )
         if self._logging_config.get("version") != "1.00":
-            raise ConfigurationError("Invalid or missing version in logging_config.json")
+            _log.warning(
+                "Version mismatch in logging_config.json: expected '1.00', "
+                "got '%s'. Proceeding with backwards compatibility.",
+                self._logging_config.get("version"),
+            )
 
         # Validate required setup keys
         required_setup_keys = ["model", "max_rounds", "timeout_seconds"]

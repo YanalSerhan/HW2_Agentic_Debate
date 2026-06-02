@@ -43,6 +43,7 @@ pythonpath = ["src"]
 [tool.coverage.run]
 source = ["src"]
 omit = ["src/main.py", "*/tests/*"]
+branch = true
 
 [tool.coverage.report]
 fail_under = 85

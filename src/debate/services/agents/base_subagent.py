@@ -2,16 +2,14 @@ import uuid
 from abc import abstractmethod
 from datetime import datetime, timezone
 
-from debate.agents.base_agent import BaseAgent
-from debate.constants import AgentRole, MessageType
-from debate.ipc.message import DebateMessage
-from debate.rag.retriever import RAGRetriever
-from debate.skills.skill_base import SkillBase
+from debate.services.agents.base_agent import BaseAgent
+from debate.services.ipc.message import DebateMessage
+from debate.services.rag.retriever import RAGRetriever
+from debate.services.skills.skill_base import SkillBase
+from debate.shared.constants import AgentRole, MessageType
 
 
-class AgreementError(Exception):
-    """Raised when an agent automatically agrees with the opponent."""
-    pass
+
 
 class BaseSubagent(BaseAgent):
     """Abstract base class for Pro and Con subagents."""
@@ -50,12 +48,7 @@ class BaseSubagent(BaseAgent):
             f"Generate a counter-argument."
         )
 
-    def _check_agreement(self, text: str):
-        text_lower = text.lower()
-        forbidden_phrases = ["i agree", "you're right", "you are right"]
-        for phrase in forbidden_phrases:
-            if phrase in text_lower:
-                raise AgreementError(f"Agent agreed with opponent using phrase: '{phrase}'")
+
 
     def generate_argument(self, round_number: int, history: list[DebateMessage]) -> DebateMessage:
         prompt = self._build_argument_prompt(round_number, history)
@@ -63,7 +56,7 @@ class BaseSubagent(BaseAgent):
         messages = [{"role": "user", "content": prompt}]
         text_content, evidence_list, usage_dict = self.call_api(messages, tools=[])
 
-        self._check_agreement(text_content)
+
 
         return DebateMessage(
             message_id=str(uuid.uuid4()),
@@ -84,7 +77,7 @@ class BaseSubagent(BaseAgent):
         messages = [{"role": "user", "content": prompt}]
         text_content, evidence_list, usage_dict = self.call_api(messages, tools=[])
 
-        self._check_agreement(text_content)
+
 
         return DebateMessage(
             message_id=str(uuid.uuid4()),

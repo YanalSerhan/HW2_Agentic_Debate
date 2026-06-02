@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from debate.agents.api_mixin import ApiMixin
+from debate.services.agents.api_mixin import ApiMixin
 
 
 class DummyAgent(ApiMixin):

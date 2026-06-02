@@ -4,9 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from debate.constants import AgentRole, MessageType
-from debate.ipc.ipc_mixin import IPCError, IPCMixin
-from debate.ipc.message import DebateMessage
+from debate.services.ipc.ipc_mixin import IPCError, IPCMixin
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole, MessageType
 
 
 class DummyAgent(IPCMixin):

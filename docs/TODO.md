@@ -1084,37 +1084,37 @@ For each module, tests must cover:
 
 ### 10.1 — Security Checklist
 
-- [ ] `API_KEY` only via `os.environ.get("ANTHROPIC_API_KEY")` — NEVER in code
-- [ ] `.env` is in `.gitignore` and never committed
-- [ ] `.env.example` has all keys with placeholder values
-- [ ] No hardcoded model names, timeouts, URLs, or numeric thresholds in source code
-- [ ] All values come from `ConfigManager` → config JSON files → environment variables
-- [ ] Run `grep -rn "sk-ant\|claude-\|api.anthropic" src/` — only constants.py references allowed
-- [ ] `Gatekeeper` prevents runaway token consumption via budget cap
+- [x] `API_KEY` only via `os.environ.get("ANTHROPIC_API_KEY")` — NEVER in code
+- [x] `.env` is in `.gitignore` and never committed
+- [x] `.env.example` has all keys with placeholder values
+- [x] No hardcoded model names, timeouts, URLs, or numeric thresholds in source code
+- [x] All values come from `ConfigManager` → config JSON files → environment variables
+- [x] Run `grep -rn "sk-ant\|claude-\|api.anthropic" src/` — only constants.py references allowed
+- [x] `Gatekeeper` prevents runaway token consumption via budget cap
 
 ### 10.2 — Ruff Compliance
 
-- [ ] Run `uv run ruff check src/ tests/` → zero violations before every commit
-- [ ] Configure pre-commit hook (optional but recommended):
+- [x] Run `uv run ruff check src/ tests/` → zero violations before every commit
+- [x] Configure pre-commit hook (optional but recommended):
   ```
   uv run ruff check src/ tests/ && uv run pytest tests/ --co -q
   ```
-- [ ] All imports organized (isort via ruff rule `I`)
-- [ ] No unused imports (rule `F`)
-- [ ] All f-strings modernized (rule `UP`)
+- [x] All imports organized (isort via ruff rule `I`)
+- [x] No unused imports (rule `F`)
+- [x] All f-strings modernized (rule `UP`)
 
 ### 10.3 — File Size Compliance
 
-- [ ] Run: `find src/ -name "*.py" -exec wc -l {} + | sort -rn | head -20`
-- [ ] Any file > 150 lines must be split
-- [ ] Document split rationale in file header comment
+- [x] Run: `find src/ -name "*.py" -exec wc -l {} + | sort -rn | head -20`
+- [x] Any file > 150 lines must be split
+- [x] Document split rationale in file header comment
 
 ### 10.4 — Version Management
 
-- [ ] All JSON config files include `"version": "1.00"`
-- [ ] `src/debate/shared/version.py` defines `VERSION = "1.00"`
-- [ ] On startup, `ConfigManager` validates config version matches code version
-- [ ] Mismatched version logs `WARNING` (not error — backwards compatible by default)
+- [x] All JSON config files include `"version": "1.00"`
+- [x] `src/debate/shared/version.py` defines `VERSION = "1.00"`
+- [x] On startup, `ConfigManager` validates config version matches code version
+- [x] Mismatched version logs `WARNING` (not error — backwards compatible by default)
 
 ---
 

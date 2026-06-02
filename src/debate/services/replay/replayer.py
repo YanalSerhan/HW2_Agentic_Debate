@@ -4,8 +4,8 @@ import time
 
 from rich.console import Console
 
-from debate.debate.verdict import Verdict
-from debate.ui.display import display_round, display_verdict, print_header
+from debate.services.debate.verdict import Verdict
+from debate.services.ui.display import display_round, display_verdict, print_header
 
 console = Console()
 

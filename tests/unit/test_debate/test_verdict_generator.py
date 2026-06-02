@@ -2,9 +2,9 @@ import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-from debate.constants import AgentRole
-from debate.debate.round_manager import RoundResult
-from debate.debate.verdict_generator import VerdictGenerator
+from debate.services.debate.round_manager import RoundResult
+from debate.services.debate.verdict_generator import VerdictGenerator
+from debate.shared.constants import AgentRole
 
 
 def _create_fake_master(pro_score=85.0, con_score=82.0, reasoning="Good debate", key_args=None):

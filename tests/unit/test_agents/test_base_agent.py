@@ -2,9 +2,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from debate.agents.base_agent import BaseAgent
-from debate.constants import AgentRole
+from debate.services.agents.base_agent import BaseAgent
 from debate.shared.config import LoggingConfig
+from debate.shared.constants import AgentRole
 
 
 class DummyAgent(BaseAgent):

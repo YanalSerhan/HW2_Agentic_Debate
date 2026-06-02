@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from debate.agents.con_subagent import ConSubagent
+from debate.services.agents.con_subagent import ConSubagent
 from debate.shared.config import LoggingConfig
 
 
@@ -35,17 +35,3 @@ def test_con_subagent_instantiates_and_responds(anthropic_response_factory, fake
     msg = agent.generate_argument(round_number=1, history=[])
     assert msg.content == "Mock counter argument"
     assert len(msg.evidence) == 1
-
-    # Test agreement check exception
-    class MockAgreeResponse:
-        content = [
-            AnthropicContentBlock("web_search_tool_result", results=[{"url": "mock://search"}]),
-            AnthropicContentBlock("text", text="I agree with you!")
-        ]
-        usage = type('obj', (object,), {'input_tokens': 10, 'output_tokens': 10})()
-
-    client.messages.create.return_value = MockAgreeResponse()
-    from debate.agents.base_subagent import AgreementError
-
-    with pytest.raises(AgreementError):
-        agent.generate_counter_argument(opponent_message=MagicMock(), round_number=2)

@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime, timezone
 
-from debate.constants import AgentRole, MessageType
-from debate.ipc.message import DebateMessage
+from debate.services.ipc.message import DebateMessage
+from debate.shared.constants import AgentRole, MessageType
 from debate.shared.logging_mixin import LoggingMixin
 
 

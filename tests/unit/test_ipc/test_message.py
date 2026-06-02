@@ -4,8 +4,8 @@ from datetime import datetime
 import pytest
 from pydantic import ValidationError
 
-from debate.constants import AgentRole, MessageType
-from debate.ipc.message import DebateMessage, Evidence
+from debate.services.ipc.message import DebateMessage, Evidence
+from debate.shared.constants import AgentRole, MessageType
 
 
 def create_valid_message(evidence_list=None):

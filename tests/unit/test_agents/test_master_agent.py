@@ -2,10 +2,10 @@ import uuid
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from debate.agents.master_agent import MasterAgent
-from debate.constants import AgentRole, MessageType
-from debate.ipc.message import DebateMessage
+from debate.services.agents.master_agent import MasterAgent
+from debate.services.ipc.message import DebateMessage
 from debate.shared.config import LoggingConfig
+from debate.shared.constants import AgentRole, MessageType
 
 
 def test_master_agent_instantiates_and_responds():

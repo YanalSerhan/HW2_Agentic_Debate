@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from debate.constants import AgentRole, MessageType
+from debate.shared.constants import AgentRole, MessageType
 
 
 class Evidence(BaseModel):

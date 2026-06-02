@@ -1,6 +1,6 @@
 import os
 
-from debate.skills.skill_base import SkillBase
+from debate.services.skills.skill_base import SkillBase
 
 
 class ProSkill(SkillBase):

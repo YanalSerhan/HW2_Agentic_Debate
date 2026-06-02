@@ -10,7 +10,7 @@ console = Console()
 
 def print_header(topic: str, rounds: int):
     """Prints the debate header."""
-    from debate.rag.role_assigner import RoleAssigner
+    from debate.services.rag.role_assigner import RoleAssigner
     roles = RoleAssigner().assign_roles(topic)
 
     header = Text(f"DEBATE: {topic}", style="bold white on blue", justify="center")
