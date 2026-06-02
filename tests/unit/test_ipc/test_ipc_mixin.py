@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -10,18 +12,24 @@ from debate.shared.constants import AgentRole, MessageType
 
 
 class DummyAgent(IPCMixin):
+    """Auto-generated docstring."""
+
     def __init__(self, role):
+        """Auto-generated docstring."""
         super().__init__()
         self._role = role
         self.logged_events = []
 
     def get_role(self):
+        """Auto-generated docstring."""
         return self._role
 
     def log_event(self, event_type, data):
+        """Auto-generated docstring."""
         self.logged_events.append((event_type, data))
 
 def create_message(sender, recipient):
+    """Auto-generated docstring."""
     return DebateMessage(
         message_id=str(uuid.uuid4()),
         session_id="session",
@@ -34,6 +42,7 @@ def create_message(sender, recipient):
     )
 
 def test_send_to_father_success():
+    """Auto-generated docstring."""
     agent = DummyAgent(AgentRole.PRO)
     channel = MagicMock()
     agent.set_ipc_channel(AgentRole.FATHER, channel)
@@ -46,6 +55,7 @@ def test_send_to_father_success():
     assert agent.logged_events[0][0] == "IPC_SEND"
 
 def test_send_to_father_fails_if_father():
+    """Auto-generated docstring."""
     agent = DummyAgent(AgentRole.FATHER)
     msg = create_message(AgentRole.FATHER, AgentRole.FATHER)
 
@@ -53,6 +63,7 @@ def test_send_to_father_fails_if_father():
         agent.send_to_father(msg)
 
 def test_send_to_father_fails_invalid_routing():
+    """Auto-generated docstring."""
     agent = DummyAgent(AgentRole.PRO)
     agent.set_ipc_channel(AgentRole.FATHER, MagicMock())
 
@@ -61,6 +72,7 @@ def test_send_to_father_fails_invalid_routing():
         agent.send_to_father(msg)
 
 def test_send_to_child_success():
+    """Auto-generated docstring."""
     father = DummyAgent(AgentRole.FATHER)
     pro_channel = MagicMock()
     father.set_ipc_channel(AgentRole.PRO, pro_channel)
@@ -72,6 +84,7 @@ def test_send_to_child_success():
     assert len(father.logged_events) == 1
 
 def test_send_to_child_fails_if_not_father():
+    """Auto-generated docstring."""
     child = DummyAgent(AgentRole.PRO)
     msg = create_message(AgentRole.PRO, AgentRole.CON)
 
@@ -79,6 +92,7 @@ def test_send_to_child_fails_if_not_father():
         child.send_to_child(AgentRole.CON, msg)
 
 def test_receive_message():
+    """Auto-generated docstring."""
     agent = DummyAgent(AgentRole.FATHER)
     channel = MagicMock()
     msg = create_message(AgentRole.PRO, AgentRole.FATHER)

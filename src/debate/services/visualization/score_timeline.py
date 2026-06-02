@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import contextlib
 import json
 import os

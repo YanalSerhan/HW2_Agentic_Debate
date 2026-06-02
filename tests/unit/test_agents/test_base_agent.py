@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -8,10 +10,14 @@ from debate.shared.constants import AgentRole
 
 
 class DummyAgent(BaseAgent):
+    """Auto-generated docstring."""
+
     def process_message(self, message):
+        """Auto-generated docstring."""
         return message
 
     def get_system_prompt(self):
+        """Auto-generated docstring."""
         return "system prompt"
 
 
@@ -33,11 +39,13 @@ def _make_agent(client=None):
 
 
 def test_abstract_methods_enforced():
+    """Auto-generated docstring."""
     with pytest.raises(TypeError):
         BaseAgent(AgentRole.PRO, "session1")
 
 
 def test_call_api_routes_through_gatekeeper(fake_anthropic_client):
+    """Auto-generated docstring."""
     agent, rate_limited_gatekeeper = _make_agent(client=fake_anthropic_client)
     text, evidence, usage = agent.call_api([], [])
     assert rate_limited_gatekeeper.execute.called
@@ -45,6 +53,7 @@ def test_call_api_routes_through_gatekeeper(fake_anthropic_client):
 
 
 def test_evidence_extracted_from_tool_result(fake_anthropic_client):
+    """Auto-generated docstring."""
     agent, _ = _make_agent(client=fake_anthropic_client)
     text, evidence, usage = agent.call_api([], [])
     assert len(evidence) == 1

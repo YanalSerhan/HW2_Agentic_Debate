@@ -1,12 +1,17 @@
+"""Auto-generated docstring."""
+
+import uuid
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-import pytest
-
 from debate.services.agents.con_subagent import ConSubagent
+from debate.services.ipc.message import DebateMessage
 from debate.shared.config import LoggingConfig
+from debate.shared.constants import AgentRole, MessageType
 
 
 def test_con_subagent_instantiates_and_responds(anthropic_response_factory, fake_anthropic_client):
+    """Auto-generated docstring."""
     AnthropicContentBlock, AnthropicAPIResponse = anthropic_response_factory  # noqa: N806
     agent = ConSubagent(session_id="session1", position="AI is bad")
 
@@ -35,3 +40,45 @@ def test_con_subagent_instantiates_and_responds(anthropic_response_factory, fake
     msg = agent.generate_argument(round_number=1, history=[])
     assert msg.content == "Mock counter argument"
     assert len(msg.evidence) == 1
+
+def test_con_subagent_hitchens_persona():
+    """Auto-generated docstring."""
+    agent = ConSubagent(session_id="session1", position="AI is bad")
+    agent.persona = "hitchens"
+    prompt = agent.get_system_prompt()
+    assert "Christopher Hitchens" in prompt
+
+def test_con_subagent_process_message_verdict():
+    """Auto-generated docstring."""
+    agent = ConSubagent(session_id="session1", position="AI is bad")
+    msg = DebateMessage(
+        message_id=str(uuid.uuid4()), session_id="s1",
+        sender=AgentRole.FATHER, recipient=AgentRole.CON,
+        message_type=MessageType.VERDICT_REQUEST, round_number=1,
+        content="verdict", evidence=[], timestamp=datetime.now(timezone.utc)
+    )
+    assert agent.process_message(msg) is None
+
+def test_con_subagent_process_message_counter_argument(monkeypatch):
+    """Auto-generated docstring."""
+    agent = ConSubagent(session_id="session1", position="AI is bad")
+    msg = DebateMessage(
+        message_id=str(uuid.uuid4()), session_id="s1",
+        sender=AgentRole.FATHER, recipient=AgentRole.CON,
+        message_type=MessageType.COUNTER_ARGUMENT, round_number=1,
+        content="counter", evidence=[], timestamp=datetime.now(timezone.utc)
+    )
+    monkeypatch.setattr(agent, "generate_counter_argument", lambda m, r: "generated_counter")
+    assert agent.process_message(msg) == "generated_counter"
+
+def test_con_subagent_process_message_default(monkeypatch):
+    """Auto-generated docstring."""
+    agent = ConSubagent(session_id="session1", position="AI is bad")
+    msg = DebateMessage(
+        message_id=str(uuid.uuid4()), session_id="s1",
+        sender=AgentRole.FATHER, recipient=AgentRole.CON,
+        message_type=MessageType.PING, round_number=1,
+        content="ping", evidence=[], timestamp=datetime.now(timezone.utc)
+    )
+    monkeypatch.setattr(agent, "generate_argument", lambda r, e: "generated_arg")
+    assert agent.process_message(msg) == "generated_arg"

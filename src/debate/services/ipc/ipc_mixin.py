@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 
 from debate.services.ipc.ipc_channel import IPCChannel
 from debate.services.ipc.message import DebateMessage
@@ -6,12 +8,14 @@ from debate.shared.constants import AgentRole
 
 class IPCError(Exception):
     """Raised on invalid IPC routing."""
+
     pass
 
 class IPCMixin:
     """Mixin to handle IPC messaging and logging."""
 
     def __init__(self):
+        """Auto-generated docstring."""
         self._ipc_send_channels: dict[AgentRole, IPCChannel] = {}
         self._ipc_receive_channels: dict[AgentRole, IPCChannel] = {}
 

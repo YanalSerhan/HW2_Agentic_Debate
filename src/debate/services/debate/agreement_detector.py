@@ -39,6 +39,7 @@ class AgreementDetector:
     """Detects whether a Con/Pro agent is capitulating instead of rebutting."""
 
     def __init__(self, extra_phrases: list[str] | None = None):
+        """Auto-generated docstring."""
         self._phrases = list(_AGREEMENT_PHRASES)
         if extra_phrases:
             self._phrases.extend(p.lower() for p in extra_phrases)

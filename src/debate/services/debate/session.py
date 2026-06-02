@@ -29,6 +29,7 @@ class DebateSession:
         gatekeeper: ApiGatekeeper,
         max_rounds: int = MIN_ROUNDS,
     ):
+        """Auto-generated docstring."""
         self.session_id = str(uuid.uuid4())
         self.topic = topic
         self.config = config
@@ -97,4 +98,5 @@ class DebateSession:
             self.process_manager.terminate_processes()
 
     def get_transcript(self) -> list[RoundResult]:
+        """Auto-generated docstring."""
         return self.round_manager.get_transcript()

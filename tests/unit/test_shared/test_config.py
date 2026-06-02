@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 
 import pytest
@@ -7,6 +9,7 @@ from debate.shared.config import ConfigManager, ConfigurationError, LoggingConfi
 
 @pytest.fixture
 def temp_config_dir(tmp_path):
+    """Auto-generated docstring."""
     config_dir = tmp_path / "config"
     config_dir.mkdir()
 
@@ -53,6 +56,7 @@ def temp_config_dir(tmp_path):
     return config_dir
 
 def test_loads_all_config_files(temp_config_dir):
+    """Auto-generated docstring."""
     manager = ConfigManager(config_dir=str(temp_config_dir))
 
     assert manager.get("model") == "claude-sonnet-4-20250514"
@@ -70,12 +74,14 @@ def test_loads_all_config_files(temp_config_dir):
     assert log_config.format == "jsonl"
 
 def test_get_returns_default_on_missing_key(temp_config_dir):
+    """Auto-generated docstring."""
     manager = ConfigManager(config_dir=str(temp_config_dir))
     assert manager.get("nonexistent_key") is None
     assert manager.get("nonexistent_key", "default_val") == "default_val"
 
 def test_raises_on_missing_required_key(temp_config_dir):
     # Remove a required key
+    """Auto-generated docstring."""
     setup_file = temp_config_dir / "setup.json"
     with open(setup_file) as f:
         data = json.load(f)

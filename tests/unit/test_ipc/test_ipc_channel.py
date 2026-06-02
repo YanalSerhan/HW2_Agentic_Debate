@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime
 
@@ -10,6 +12,7 @@ from debate.shared.constants import AgentRole, MessageType
 
 
 def create_valid_message():
+    """Auto-generated docstring."""
     return DebateMessage(
         message_id=str(uuid.uuid4()),
         session_id=str(uuid.uuid4()),
@@ -24,6 +27,7 @@ def create_valid_message():
     )
 
 def test_send_receive_round_trip():
+    """Auto-generated docstring."""
     channel = IPCChannel()
     msg = create_valid_message()
 
@@ -35,6 +39,7 @@ def test_send_receive_round_trip():
     assert channel.is_empty() is True
 
 def test_receive_raises_on_timeout():
+    """Auto-generated docstring."""
     channel = IPCChannel()
 
     with pytest.raises(IPCTimeoutError):
@@ -42,6 +47,7 @@ def test_receive_raises_on_timeout():
 
 def test_queue_full_raises_backpressure_error():
     # create channel with very small maxsize
+    """Auto-generated docstring."""
     channel = IPCChannel(maxsize=1)
     msg1 = create_valid_message()
     msg2 = create_valid_message()
@@ -52,6 +58,7 @@ def test_queue_full_raises_backpressure_error():
         channel.send(msg2)
 
 def test_message_validated_on_receive():
+    """Auto-generated docstring."""
     channel = IPCChannel()
     # intentionally bypass `send` to put invalid json
     channel._queue.put('{"message_id": "123", "invalid": "data"}')

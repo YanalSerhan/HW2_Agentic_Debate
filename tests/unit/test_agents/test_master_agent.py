@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -9,6 +11,7 @@ from debate.shared.constants import AgentRole, MessageType
 
 
 def test_master_agent_instantiates_and_responds():
+    """Auto-generated docstring."""
     agent = MasterAgent(session_id="session1")
 
     gatekeeper = MagicMock()

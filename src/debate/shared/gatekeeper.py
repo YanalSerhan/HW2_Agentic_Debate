@@ -9,21 +9,29 @@ from debate.shared.config import RateLimitConfig
 
 class GatekeeperQueueFullError(Exception):
     """Raised when the gatekeeper queue exceeds max depth."""
+
     pass
 
 class MaxRetriesExceededError(Exception):
     """Raised when an API call fails after maximum retries."""
+
     pass
 
 class QueueStatus:
+    """Auto-generated docstring."""
+
     def __init__(self, depth: int, max_depth: int, requests_this_minute: int, requests_this_hour: int):
+        """Auto-generated docstring."""
         self.depth = depth
         self.max_depth = max_depth
         self.requests_this_minute = requests_this_minute
         self.requests_this_hour = requests_this_hour
 
 class ApiGatekeeper:
+    """Auto-generated docstring."""
+
     def __init__(self, config: RateLimitConfig):
+        """Auto-generated docstring."""
         self.config = config
         self.queue = deque()
         self.request_timestamps = []
@@ -42,6 +50,7 @@ class ApiGatekeeper:
                 requests_last_hour < self.config.requests_per_hour)
 
     def get_queue_status(self) -> QueueStatus:
+        """Auto-generated docstring."""
         now = time.time()
         self._clean_window(now)
         requests_last_minute = sum(1 for ts in self.request_timestamps if ts > now - 60)
@@ -59,6 +68,7 @@ class ApiGatekeeper:
             time.sleep(0.01)
 
     def execute(self, api_call: Callable, *args, **kwargs) -> Any:
+        """Auto-generated docstring."""
         if len(self.queue) >= self.config.queue_max_depth:
             raise GatekeeperQueueFullError("Queue depth exceeded max depth")
 

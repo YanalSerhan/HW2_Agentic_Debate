@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 
 from typer.testing import CliRunner

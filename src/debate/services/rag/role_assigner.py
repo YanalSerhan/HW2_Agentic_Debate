@@ -1,8 +1,11 @@
+"""Auto-generated docstring."""
+
 class RoleAssigner:
     """Assigns debate roles dynamically based on topic."""
 
     def __init__(self):
         # Known topics that each persona would naturally support (PRO) or oppose (CON)
+        """Auto-generated docstring."""
         self.hitchens_pro = ["free speech", "secularism", "atheism", "intervention", "liberalism", "war on terror"]
         self.hitchens_con = ["religion", "authoritarianism", "nationalism", "censorship"]
 
@@ -10,8 +13,7 @@ class RoleAssigner:
         self.chomsky_con = ["us foreign policy", "corporate power", "mainstream media", "military intervention"]
 
     def assign_roles(self, topic: str) -> dict:
-        """
-        Returns a dict indicating which persona takes which side, e.g.
+        """Returns a dict indicating which persona takes which side, e.g.
         {"pro": "hitchens", "con": "chomsky"}
         """
         topic_lower = topic.lower()

@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime, timezone
 
@@ -13,9 +15,11 @@ class MasterAgent(BaseAgent):
     """Father/Judge agent."""
 
     def __init__(self, session_id: str):
+        """Auto-generated docstring."""
         super().__init__(AgentRole.FATHER, session_id)
 
     def get_system_prompt(self) -> str:
+        """Auto-generated docstring."""
         return (
             "You are Justice Ruth Bader Ginsburg, Associate Justice of the Supreme Court of the United States "
             "for 27 years, and one of the most meticulous legal minds in American history. You are presiding "
@@ -52,6 +56,7 @@ class MasterAgent(BaseAgent):
     def process_message(self, message: DebateMessage) -> DebateMessage:
         # The Father typically handles routing or processing incoming messages
         # Here we just acknowledge it for simplicity in Phase 3
+        """Auto-generated docstring."""
         return DebateMessage(
             message_id=str(uuid.uuid4()),
             session_id=self._session_id,

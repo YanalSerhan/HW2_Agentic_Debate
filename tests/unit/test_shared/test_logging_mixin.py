@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 import os
 
@@ -9,10 +11,12 @@ from debate.shared.logging_mixin import LoggingMixin
 
 @pytest.fixture
 def temp_log_dir(tmp_path):
+    """Auto-generated docstring."""
     return str(tmp_path / "logs")
 
 @pytest.fixture
 def log_config(temp_log_dir):
+    """Auto-generated docstring."""
     return LoggingConfig(
         version="1.00",
         log_level="INFO",
@@ -23,17 +27,22 @@ def log_config(temp_log_dir):
     )
 
 class DummyAgent(LoggingMixin):
+    """Auto-generated docstring."""
+
     def __init__(self, name, config):
+        """Auto-generated docstring."""
         self.setup_logging(name, config)
         self._session_id = "test-session"
         self._current_round = 1
 
 def test_log_file_created_in_log_dir(log_config, temp_log_dir):
+    """Auto-generated docstring."""
     DummyAgent("pro", log_config)
     assert os.path.exists(temp_log_dir)
     assert os.path.exists(os.path.join(temp_log_dir, "debate_0.jsonl"))
 
 def test_log_entry_is_valid_json(log_config, temp_log_dir):
+    """Auto-generated docstring."""
     agent = DummyAgent("pro", log_config)
     agent.log_event("TEST_EVENT", {"key": "value"})
 
@@ -52,6 +61,7 @@ def test_log_entry_is_valid_json(log_config, temp_log_dir):
     assert "timestamp" in record
 
 def test_rotation_triggered_at_max_lines(log_config, temp_log_dir):
+    """Auto-generated docstring."""
     agent = DummyAgent("pro", log_config)
 
     # max_lines_per_file is 5, write 6 lines

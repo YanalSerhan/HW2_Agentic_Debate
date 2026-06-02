@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -24,6 +26,7 @@ def _make_msg(role, input_tokens, output_tokens, round_num=1):
 
 
 def test_token_accumulation_across_rounds():
+    """Auto-generated docstring."""
     config = ConfigManager("config/")
     gatekeeper = MagicMock()
 
@@ -42,6 +45,7 @@ def test_token_accumulation_across_rounds():
     }
 
     def simulated_request(role, expected_type, round_number, timeout=30.0):
+        """Auto-generated docstring."""
         return msgs.get((role, round_number))
 
     session.orchestrator.request_from_child = simulated_request
@@ -63,6 +67,7 @@ def test_token_accumulation_across_rounds():
 
 
 def test_cost_calculation_matches_model_pricing():
+    """Auto-generated docstring."""
     config = ConfigManager("config/")
 
     # Force specific pricing
@@ -83,6 +88,7 @@ def test_cost_calculation_matches_model_pricing():
     }
 
     def simulated_request(role, expected_type, round_number, timeout=30.0):
+        """Auto-generated docstring."""
         return msgs.get((role, round_number))
 
     session.orchestrator.request_from_child = simulated_request

@@ -1,18 +1,25 @@
+"""Auto-generated docstring."""
+
 from unittest.mock import MagicMock
 
 from debate.services.agents.api_mixin import ApiMixin
 
 
 class DummyAgent(ApiMixin):
+    """Auto-generated docstring."""
+
     def __init__(self):
+        """Auto-generated docstring."""
         self.gatekeeper = MagicMock()
         self.config = {}
 
     def log_api_call(self, prompt_tokens, completion_tokens, cost_usd):
+        """Auto-generated docstring."""
         pass
 
 
 def test_api_mixin_cleanup():
+    """Auto-generated docstring."""
     agent = DummyAgent()
 
     examples = [
@@ -48,12 +55,18 @@ def test_api_mixin_cleanup():
 
     for raw_text, expected in examples:
         class MockBlock:
+            """Auto-generated docstring."""
+
             def __init__(self, t, text):
+                """Auto-generated docstring."""
                 self.type = t
                 self.text = text
 
         class MockResponse:
+            """Auto-generated docstring."""
+
             def __init__(self, content_text):
+                """Auto-generated docstring."""
                 self.content = [MockBlock("text", text=content_text)]
                 self.usage = type("obj", (object,), {"input_tokens": 10, "output_tokens": 10})()
 

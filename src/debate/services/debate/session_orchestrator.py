@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime, timezone
 
@@ -12,9 +14,11 @@ class SessionOrchestrator:
     """Handles communication orchestration for DebateSession."""
 
     def __init__(self, session):
+        """Auto-generated docstring."""
         self.session = session
 
     def send_topic_to_agent(self, role: AgentRole, round_number: int):
+        """Auto-generated docstring."""
         msg = DebateMessage(
             message_id=str(uuid.uuid4()), session_id=self.session.session_id,
             sender=AgentRole.FATHER, recipient=role, message_type=MessageType.ARGUMENT,
@@ -24,6 +28,7 @@ class SessionOrchestrator:
         self.session.father.send_to_child(role, msg)
 
     def request_from_child(self, role: AgentRole, expected_type: MessageType, round_number: int, timeout: float = 120.0) -> DebateMessage | None:
+        """Auto-generated docstring."""
         try:
             return self.session.father.receive_from_child(role, expected_type, timeout=timeout)
         except (IPCTimeoutError, ValueError):
@@ -37,6 +42,7 @@ class SessionOrchestrator:
             return None
 
     def receive_con_with_agreement_check(self, pro_msg: DebateMessage, rnd: int) -> DebateMessage | None:
+        """Auto-generated docstring."""
         for attempt in range(1 + MAX_AGREEMENT_RETRIES):
             con_msg = self.request_from_child(AgentRole.CON, MessageType.COUNTER_ARGUMENT, rnd)
             if con_msg is None:
@@ -55,6 +61,7 @@ class SessionOrchestrator:
         return con_msg
 
     def forfeit_verdict(self, winner: AgentRole, rnd: int) -> Verdict:
+        """Auto-generated docstring."""
         loser = AgentRole.CON if winner == AgentRole.PRO else AgentRole.PRO
         return Verdict(
             session_id=self.session.session_id, winner=winner,
@@ -67,6 +74,7 @@ class SessionOrchestrator:
         )
 
     def run_single_round(self, rnd: int) -> Verdict | None:
+        """Auto-generated docstring."""
         from debate.services.debate.round_manager import RoundResult
         self.session.father._current_round = rnd
         pro_msg = self.request_from_child(AgentRole.PRO, MessageType.ARGUMENT, rnd, timeout=120.0)
@@ -103,7 +111,7 @@ class SessionOrchestrator:
             pro_score = sum(r.pro_score for r in self.session.round_manager.get_transcript())
             con_score = sum(r.con_score for r in self.session.round_manager.get_transcript())
             winner = AgentRole.PRO if pro_score > con_score else AgentRole.CON if con_score > pro_score else AgentRole.FATHER
-            
+
             return Verdict(
                 session_id=self.session.session_id, winner=winner,
                 pro_score=pro_score, con_score=con_score,

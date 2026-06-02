@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import threading
 import time
 from typing import Any
@@ -7,6 +9,7 @@ class WatchdogMixin:
     """Mixin for monitoring child processes with a timeout."""
 
     def __init__(self):
+        """Auto-generated docstring."""
         self._watchdog_thread = None
         self._watchdog_stop_event = threading.Event()
         self._last_ping = 0.0
@@ -20,7 +23,7 @@ class WatchdogMixin:
             self._processes = process
         else:
             self._processes = [process] if process else []
-            
+
         self._last_ping = time.time()
         self._watchdog_stop_event.clear()
 
@@ -66,7 +69,9 @@ class WatchdogMixin:
         pass
 
     def __enter__(self):
+        """Auto-generated docstring."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Auto-generated docstring."""
         self.stop_watchdog()

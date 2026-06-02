@@ -11,6 +11,7 @@ class CostAnalyzer:
     """Analyzes token usage and computes financial costs from a debate transcript."""
 
     def __init__(self):
+        """Auto-generated docstring."""
         self.report = {}
         self.console = Console()
 

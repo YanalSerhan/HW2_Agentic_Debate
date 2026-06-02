@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -6,17 +8,20 @@ from debate.shared.constants import MIN_ROUNDS
 
 
 class RoundResult(BaseModel):
+    """Auto-generated docstring."""
+
     round_number: int
     pro_message: str
     con_message: str
     timestamp: datetime
-    pro_score: int | None = None
-    con_score: int | None = None
+    pro_score: float | None = None
+    con_score: float | None = None
 
 class RoundManager:
     """Manages debate rounds and transcript."""
 
     def __init__(self):
+        """Auto-generated docstring."""
         self._current_round = 1
         self._transcript: list[RoundResult] = []
 

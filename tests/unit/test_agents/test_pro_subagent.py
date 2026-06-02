@@ -1,12 +1,17 @@
+"""Auto-generated docstring."""
+
+import uuid
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-import pytest
-
 from debate.services.agents.pro_subagent import ProSubagent
+from debate.services.ipc.message import DebateMessage
 from debate.shared.config import LoggingConfig
+from debate.shared.constants import AgentRole, MessageType
 
 
 def test_pro_subagent_instantiates_and_responds(anthropic_response_factory, fake_anthropic_client):
+    """Auto-generated docstring."""
     AnthropicContentBlock, AnthropicAPIResponse = anthropic_response_factory  # noqa: N806
     agent = ProSubagent(session_id="session1", position="AI is good")
 
@@ -37,3 +42,34 @@ def test_pro_subagent_instantiates_and_responds(anthropic_response_factory, fake
     msg = agent.generate_argument(round_number=1, history=[])
     assert msg.content == "Mock argument"
     assert len(msg.evidence) == 1
+
+def test_pro_subagent_chomsky_persona():
+    """Auto-generated docstring."""
+    agent = ProSubagent(session_id="session1", position="AI is good")
+    agent.persona = "chomsky"
+    prompt = agent.get_system_prompt()
+    assert "Noam Chomsky" in prompt
+
+def test_pro_subagent_process_message_verdict(monkeypatch):
+    """Auto-generated docstring."""
+    agent = ProSubagent(session_id="session1", position="AI is good")
+    msg = DebateMessage(
+        message_id=str(uuid.uuid4()), session_id="s1",
+        sender=AgentRole.FATHER, recipient=AgentRole.PRO,
+        message_type=MessageType.VERDICT_REQUEST, round_number=1,
+        content="verdict", evidence=[], timestamp=datetime.now(timezone.utc)
+    )
+    monkeypatch.setattr(agent, "generate_argument", lambda r, h: "generated_arg")
+    assert agent.process_message(msg) == "generated_arg"
+
+def test_pro_subagent_process_message_default(monkeypatch):
+    """Auto-generated docstring."""
+    agent = ProSubagent(session_id="session1", position="AI is good")
+    msg = DebateMessage(
+        message_id=str(uuid.uuid4()), session_id="s1",
+        sender=AgentRole.FATHER, recipient=AgentRole.PRO,
+        message_type=MessageType.PING, round_number=1,
+        content="ping", evidence=[], timestamp=datetime.now(timezone.utc)
+    )
+    monkeypatch.setattr(agent, "generate_argument", lambda r, h: "generated_arg")
+    assert agent.process_message(msg) == "generated_arg"

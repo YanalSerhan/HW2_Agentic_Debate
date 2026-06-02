@@ -3,11 +3,15 @@ from enum import Enum
 
 
 class AgentRole(Enum):
+    """Auto-generated docstring."""
+
     FATHER = "father"
     PRO = "pro"
     CON = "con"
 
 class MessageType(Enum):
+    """Auto-generated docstring."""
+
     ARGUMENT = "argument"
     COUNTER_ARGUMENT = "counter_argument"
     SEARCH_RESULT = "search_result"
@@ -18,6 +22,8 @@ class MessageType(Enum):
     ERROR = "error"
 
 class DebateStatus(Enum):
+    """Auto-generated docstring."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     JUDGING = "judging"

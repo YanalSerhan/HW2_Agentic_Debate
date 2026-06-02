@@ -7,10 +7,13 @@ from typing import Any
 
 class ConfigurationError(Exception):
     """Raised when configuration is missing or invalid."""
+
     pass
 
 @dataclass
 class RateLimitConfig:
+    """Auto-generated docstring."""
+
     requests_per_minute: int
     requests_per_hour: int
     concurrent_max: int
@@ -20,6 +23,8 @@ class RateLimitConfig:
 
 @dataclass
 class LoggingConfig:
+    """Auto-generated docstring."""
+
     version: str
     log_level: str
     log_dir: str
@@ -28,7 +33,10 @@ class LoggingConfig:
     format: str
 
 class ConfigManager:
+    """Auto-generated docstring."""
+
     def __init__(self, config_dir: str = "config/"):
+        """Auto-generated docstring."""
         self.config_dir = Path(config_dir)
         self._setup_config: dict[str, Any] = {}
         self._rate_limits: dict[str, Any] = {}
@@ -79,9 +87,11 @@ class ConfigManager:
                 raise ConfigurationError(f"Missing required key '{key}' in setup.json")
 
     def get(self, key: str, default: Any = None) -> Any:
+        """Auto-generated docstring."""
         return self._setup_config.get(key, default)
 
     def get_rate_limit_config(self) -> RateLimitConfig:
+        """Auto-generated docstring."""
         try:
             default_svc = self._rate_limits["rate_limits"]["services"]["default"]
             return RateLimitConfig(
@@ -96,6 +106,7 @@ class ConfigManager:
             raise ConfigurationError(f"Missing rate limit configuration key: {e}") from e
 
     def get_logging_config(self) -> LoggingConfig:
+        """Auto-generated docstring."""
         try:
             return LoggingConfig(
                 version=self._logging_config["version"],

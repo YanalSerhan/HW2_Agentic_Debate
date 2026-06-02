@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import re
 
 from debate.services.ipc.message import Evidence
@@ -22,6 +24,7 @@ class ApiMixin:
             })
 
         def do_api_call():
+            """Auto-generated docstring."""
             client = self._get_client()
             if client:
                 return client.messages.create(
@@ -33,12 +36,18 @@ class ApiMixin:
                 )
             # Default mock behaviour if no client is configured
             class MockBlock:
+                """Auto-generated docstring."""
+
                 def __init__(self, t, text="Mock response"):
+                    """Auto-generated docstring."""
                     self.type = t
                     self.text = text
 
             class MockResponse:
+                """Auto-generated docstring."""
+
                 def __init__(self):
+                    """Auto-generated docstring."""
                     self.content = [MockBlock("text", text="Mock response")]
                     self.usage = type("obj", (object,), {"input_tokens": 10, "output_tokens": 10})()
             return MockResponse()

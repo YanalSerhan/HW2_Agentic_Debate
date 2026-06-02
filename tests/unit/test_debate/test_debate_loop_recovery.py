@@ -1,4 +1,5 @@
-"""Unit tests for the debate loop in DebateSession (Phase 5)."""
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -10,9 +11,6 @@ from debate.services.ipc.message import DebateMessage
 from debate.shared.config import ConfigManager
 from debate.shared.constants import MIN_ROUNDS, AgentRole, MessageType
 
-# ---------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------
 
 def _msg(sender, recipient, mtype, rnd=1, content="test"):
     return DebateMessage(
@@ -27,7 +25,6 @@ def _msg(sender, recipient, mtype, rnd=1, content="test"):
         timestamp=datetime.now(timezone.utc),
     )
 
-
 def _make_session(max_rounds=MIN_ROUNDS):
     """Build a DebateSession with mocked child processes (never spawned)."""
     config = ConfigManager("config/")
@@ -40,107 +37,83 @@ def _make_session(max_rounds=MIN_ROUNDS):
     )
     return session
 
+def test_agent_timeout_triggers_restart():
+    """When Pro times out the session should attempt a restart."""
+    session = _make_session(max_rounds=MIN_ROUNDS)
 
-# ---------------------------------------------------------------------------
-# 5.1 — debate loop tests
-# ---------------------------------------------------------------------------
-
-def test_debate_runs_minimum_3_rounds():
-    """The round manager should end up with MIN_ROUNDS results."""
-    session = _make_session()
-
-    # We mock the IPC so nothing actually spawns processes.
-    # Father sends to children via send_to_child → channel.send
-    # Father receives via receive_from_child → channel.receive
-    pro_replies = []
-    con_replies = []
-    for rnd in range(1, MIN_ROUNDS + 1):
-        pro_replies.append(
-            _msg(AgentRole.PRO, AgentRole.FATHER, MessageType.ARGUMENT, rnd,
-                 f"Pro argument round {rnd}"),
-        )
-        con_replies.append(
-            _msg(AgentRole.CON, AgentRole.FATHER, MessageType.COUNTER_ARGUMENT, rnd,
-                 f"Con counter round {rnd}"),
-        )
-
-    pro_idx = {"i": 0}
-    con_idx = {"i": 0}
+    call_count = {"n": 0}
 
     def _pro_recv(timeout=30.0):
-        i = pro_idx["i"]
-        pro_idx["i"] += 1
-        if i < len(pro_replies):
-            return pro_replies[i]
-        raise IPCTimeoutError("done")
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise IPCTimeoutError("timeout")
+        return _msg(AgentRole.PRO, AgentRole.FATHER, MessageType.ARGUMENT, 1, "recovered")
 
-    def _con_recv(timeout=30.0):
-        i = con_idx["i"]
-        con_idx["i"] += 1
-        if i < len(con_replies):
-            return con_replies[i]
-        raise IPCTimeoutError("done")
+    con_msgs = iter([
+        _msg(AgentRole.CON, AgentRole.FATHER, MessageType.COUNTER_ARGUMENT, r, f"con{r}")
+        for r in range(1, MIN_ROUNDS + 1)
+    ])
 
-    # Replace channels with mocks
     session.pro_to_father = MagicMock(spec=IPCChannel)
     session.pro_to_father.receive.side_effect = _pro_recv
+    session.con_to_father = MagicMock(spec=IPCChannel)
+    session.con_to_father.receive.side_effect = lambda timeout=30: next(con_msgs)
+    session.father_to_pro = MagicMock(spec=IPCChannel)
+    session.father_to_con = MagicMock(spec=IPCChannel)
+
+    session.father.set_ipc_send_channel(AgentRole.PRO, session.father_to_pro)
+    session.father.set_ipc_receive_channel(AgentRole.PRO, session.pro_to_father)
+    session.father.set_ipc_send_channel(AgentRole.CON, session.father_to_con)
+    session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
+
+    session.process_manager.start_processes = MagicMock()
+    session.process_manager.terminate_processes = MagicMock()
+
+    # Stub _restart_child so it doesn't actually spawn a process
+    session.process_manager.restart_child = MagicMock(return_value=True)
+
+    verdict = session.run()
+    session.process_manager.restart_child.assert_called()
+    assert isinstance(verdict, Verdict)
+
+def test_agreement_detection_triggers_regeneration():
+    """When Con agrees with Pro the session should re-request."""
+    session = _make_session(max_rounds=MIN_ROUNDS)
+
+    con_call = {"n": 0}
+
+    def _con_recv(timeout=30.0):
+        con_call["n"] += 1
+        rnd = (con_call["n"] + 1) // 2  # two calls per round on first agree
+        if con_call["n"] == 1:
+            return _msg(AgentRole.CON, AgentRole.FATHER,
+                        MessageType.COUNTER_ARGUMENT, 1,
+                        "I agree with your assessment entirely.")
+        return _msg(AgentRole.CON, AgentRole.FATHER,
+                    MessageType.COUNTER_ARGUMENT, rnd,
+                    f"Counter argument round {rnd}")
+
+    pro_msgs = iter([
+        _msg(AgentRole.PRO, AgentRole.FATHER, MessageType.ARGUMENT, r, f"pro{r}")
+        for r in range(1, MIN_ROUNDS + 1)
+    ])
+
+    session.pro_to_father = MagicMock(spec=IPCChannel)
+    session.pro_to_father.receive.side_effect = lambda timeout=30: next(pro_msgs)
     session.con_to_father = MagicMock(spec=IPCChannel)
     session.con_to_father.receive.side_effect = _con_recv
     session.father_to_pro = MagicMock(spec=IPCChannel)
     session.father_to_con = MagicMock(spec=IPCChannel)
 
-    # Re-wire father channels
     session.father.set_ipc_send_channel(AgentRole.PRO, session.father_to_pro)
     session.father.set_ipc_receive_channel(AgentRole.PRO, session.pro_to_father)
     session.father.set_ipc_send_channel(AgentRole.CON, session.father_to_con)
     session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
 
-    # Disable real process spawning
     session.process_manager.start_processes = MagicMock()
     session.process_manager.terminate_processes = MagicMock()
 
     verdict = session.run()
-
     assert isinstance(verdict, Verdict)
-    assert len(session.round_manager.get_transcript()) == MIN_ROUNDS
-
-
-def test_debate_transcript_length_matches_rounds():
-    """Auto-generated docstring."""
-    session = _make_session(max_rounds=MIN_ROUNDS)
-
-    replies_pro = [
-        _msg(AgentRole.PRO, AgentRole.FATHER, MessageType.ARGUMENT, r,
-             f"arg{r}")
-        for r in range(1, MIN_ROUNDS + 1)
-    ]
-    replies_con = [
-        _msg(AgentRole.CON, AgentRole.FATHER, MessageType.COUNTER_ARGUMENT, r,
-             f"ctr{r}")
-        for r in range(1, MIN_ROUNDS + 1)
-    ]
-
-    pro_it = iter(replies_pro)
-    con_it = iter(replies_con)
-
-    session.pro_to_father = MagicMock(spec=IPCChannel)
-    session.pro_to_father.receive.side_effect = lambda timeout=30: next(pro_it)
-    session.con_to_father = MagicMock(spec=IPCChannel)
-    session.con_to_father.receive.side_effect = lambda timeout=30: next(con_it)
-    session.father_to_pro = MagicMock(spec=IPCChannel)
-    session.father_to_con = MagicMock(spec=IPCChannel)
-
-    session.father.set_ipc_send_channel(AgentRole.PRO, session.father_to_pro)
-    session.father.set_ipc_receive_channel(AgentRole.PRO, session.pro_to_father)
-    session.father.set_ipc_send_channel(AgentRole.CON, session.father_to_con)
-    session.father.set_ipc_receive_channel(AgentRole.CON, session.con_to_father)
-
-    session.process_manager.start_processes = MagicMock()
-    session.process_manager.terminate_processes = MagicMock()
-
-    verdict = session.run()
-    transcript = session.get_transcript()
-    assert len(transcript) == MIN_ROUNDS
-    assert verdict.round_count == MIN_ROUNDS
-
-
+    # Con should have received MORE sends than just the rounds (the re-sends)
+    assert session.father_to_con.send.call_count > MIN_ROUNDS

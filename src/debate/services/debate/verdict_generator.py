@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 from datetime import datetime, timezone
 from typing import Any
@@ -11,9 +13,11 @@ class VerdictGenerator:
     """Generates the final verdict using the LLM API."""
 
     def __init__(self, master_agent: Any):
+        """Auto-generated docstring."""
         self.master_agent = master_agent
 
     def generate_verdict(self, transcript: list[RoundResult], session_id: str, total_tokens: int, total_cost: float) -> Verdict:
+        """Auto-generated docstring."""
         prompt = self._build_prompt(transcript)
 
         # Ensure we don't fail if web search is missing, but MasterAgent is set up to retry and ignore.

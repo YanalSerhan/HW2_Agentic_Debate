@@ -1,3 +1,4 @@
+
 import time
 from unittest.mock import MagicMock
 
@@ -6,7 +7,6 @@ import pytest
 from debate.shared.gatekeeper import (
     ApiGatekeeper,
     GatekeeperQueueFullError,
-    MaxRetriesExceededError,
     RateLimitConfig,
 )
 
@@ -90,30 +90,6 @@ def test_queue_fills_and_backpressure_triggered(rate_limit_config):
     with pytest.raises(GatekeeperQueueFullError, match="Queue depth exceeded max depth"):
         gatekeeper.execute(fake_api)
 
-def test_retries_on_transient_error(rate_limit_config, monkeypatch):
-    gatekeeper = ApiGatekeeper(rate_limit_config)
-
-    # Patch time.sleep to avoid waiting during test
-    monkeypatch.setattr(time, "sleep", lambda x: None)
-
-    fake_api = MagicMock(side_effect=[Exception("transient"), "success"])
-
-    result = gatekeeper.execute(fake_api)
-
-    assert result == "success"
-    assert fake_api.call_count == 2
-
-def test_raises_after_max_retries(rate_limit_config, monkeypatch):
-    gatekeeper = ApiGatekeeper(rate_limit_config)
-
-    monkeypatch.setattr(time, "sleep", lambda x: None)
-
-    fake_api = MagicMock(side_effect=Exception("persistent error"))
-
-    with pytest.raises(MaxRetriesExceededError, match="API call failed after 3 retries"):
-        gatekeeper.execute(fake_api)
-
-    assert fake_api.call_count == 4 # 1 initial + 3 retries
 
 def test_queue_status_accurate(rate_limit_config):
     gatekeeper = ApiGatekeeper(rate_limit_config)

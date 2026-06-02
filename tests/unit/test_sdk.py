@@ -1,14 +1,18 @@
+"""Auto-generated docstring."""
+
 from unittest.mock import MagicMock, patch
 
 from debate.sdk.sdk import DebateSDK, main
 
 
 def test_sdk_init_with_api_key(monkeypatch):
+    """Auto-generated docstring."""
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test_key")
     sdk = DebateSDK("Test")
     assert sdk.config_manager.api_key == "test_key"
 
 def test_sdk_get_queue_status():
+    """Auto-generated docstring."""
     sdk = DebateSDK("Test")
     status = sdk.get_queue_status()
     assert status.depth == 0
@@ -16,6 +20,7 @@ def test_sdk_get_queue_status():
 @patch("debate.sdk.sdk.argparse.ArgumentParser.parse_args")
 @patch("debate.sdk.sdk.DebateSDK")
 def test_sdk_main(mock_sdk_cls, mock_parse_args):
+    """Auto-generated docstring."""
     mock_args = MagicMock()
     mock_args.topic = "Main Topic"
     mock_args.config = "config/"
@@ -33,6 +38,7 @@ def test_sdk_main(mock_sdk_cls, mock_parse_args):
 @patch("debate.sdk.sdk.argparse.ArgumentParser.parse_args")
 @patch("debate.sdk.sdk.DebateSDK")
 def test_sdk_main_exception(mock_sdk_cls, mock_parse_args):
+    """Auto-generated docstring."""
     mock_args = MagicMock()
     mock_parse_args.return_value = mock_args
 

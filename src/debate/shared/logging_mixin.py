@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 import os
 import traceback
@@ -9,7 +11,9 @@ from debate.shared.config import LoggingConfig
 
 class LineRotatingLogger:
     """A simple line-based rotating JSONL file logger."""
+
     def __init__(self, log_dir: str, max_files: int, max_lines_per_file: int):
+        """Auto-generated docstring."""
         self.log_dir = log_dir
         self.max_files = max_files
         self.max_lines_per_file = max_lines_per_file
@@ -44,6 +48,7 @@ class LineRotatingLogger:
         self.current_lines = 0
 
     def write(self, record: dict):
+        """Auto-generated docstring."""
         if self.current_lines >= self.max_lines_per_file:
             self._rotate()
         with open(self.current_file, 'a', encoding='utf-8') as f:
@@ -52,7 +57,9 @@ class LineRotatingLogger:
 
 class LoggingMixin:
     """Mixin for agent logging."""
+
     def setup_logging(self, agent_name: str, config: LoggingConfig):
+        """Auto-generated docstring."""
         self._agent_name = agent_name
         self._session_id = str(uuid.uuid4()) # default, can be overridden by agent
         self._logger = LineRotatingLogger(
@@ -62,6 +69,7 @@ class LoggingMixin:
         )
 
     def log_event(self, event_type: str, data: dict):
+        """Auto-generated docstring."""
         if not hasattr(self, '_logger'):
             return
 
@@ -76,6 +84,7 @@ class LoggingMixin:
         self._logger.write(record)
 
     def log_api_call(self, prompt_tokens: int, completion_tokens: int, cost_usd: float):
+        """Auto-generated docstring."""
         self.log_event("API_CALL", {
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
@@ -83,6 +92,7 @@ class LoggingMixin:
         })
 
     def log_error(self, error: Exception, context: dict):
+        """Auto-generated docstring."""
         data = {
             "error_type": type(error).__name__,
             "message": str(error),

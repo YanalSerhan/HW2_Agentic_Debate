@@ -16,6 +16,7 @@ class DebateSDK:
     """Debate SDK for programmatic access to the debate system."""
 
     def __init__(self, topic: str, config_path: str = "config/", max_rounds: int = 10):
+        """Auto-generated docstring."""
         self.topic = topic
         self.max_rounds = max_rounds
         self.config_manager = ConfigManager(config_dir=config_path)
@@ -51,6 +52,7 @@ class DebateSDK:
         return self.gatekeeper.get_queue_status()
 
 def main():
+    """Auto-generated docstring."""
     parser = argparse.ArgumentParser(description="Multi-Agent AI Debate System")
     parser.add_argument("topic", type=str, help="The debate topic")
     parser.add_argument("--config", type=str, default="config/", help="Path to config directory")

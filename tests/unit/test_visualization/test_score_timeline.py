@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 
 import matplotlib
@@ -8,6 +10,7 @@ from debate.services.visualization.score_timeline import ScoreTimeline
 
 
 def test_score_timeline_generate(tmp_path, monkeypatch):
+    """Auto-generated docstring."""
     monkeypatch.chdir(tmp_path)
 
     transcript = {
@@ -39,6 +42,7 @@ def test_score_timeline_generate(tmp_path, monkeypatch):
     assert (tmp_path / "assets" / "final_verdict.png").exists()
 
 def test_score_timeline_no_rounds(tmp_path, monkeypatch):
+    """Auto-generated docstring."""
     monkeypatch.chdir(tmp_path)
 
     transcript = {"topic": "Test", "rounds": []}

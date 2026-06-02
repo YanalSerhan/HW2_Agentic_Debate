@@ -1,13 +1,19 @@
+"""Auto-generated docstring."""
+
 import os
 import re
 
 
 class RAGRetriever:
+    """Auto-generated docstring."""
+
     def __init__(self, data_path: str = "data/"):
+        """Auto-generated docstring."""
         self.data_path = data_path
         self._cache = {}
 
     def load_knowledge_base(self, persona: str) -> str:
+        """Auto-generated docstring."""
         if persona in self._cache:
             return self._cache[persona]
 
@@ -22,6 +28,7 @@ class RAGRetriever:
         return content
 
     def retrieve(self, persona: str, topic: str, round_number: int) -> str:
+        """Auto-generated docstring."""
         kb_content = self.load_knowledge_base(persona)
         if not kb_content:
             return ""
@@ -50,6 +57,7 @@ class RAGRetriever:
         return "\n\n".join(top_chunks)
 
     def get_context_for_argument(self, persona: str, topic: str, round_number: int) -> str:
+        """Auto-generated docstring."""
         chunks = self.retrieve(persona, topic, round_number)
         if not chunks:
             return ""

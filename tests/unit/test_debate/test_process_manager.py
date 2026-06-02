@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 from unittest.mock import MagicMock, patch
 
 from debate.services.debate.process_manager import ProcessManager
@@ -6,6 +8,7 @@ from debate.shared.constants import AgentRole
 
 @patch("debate.services.debate.process_manager.multiprocessing.Process")
 def test_process_manager_lifecycle(mock_process_cls):
+    """Auto-generated docstring."""
     mock_process = MagicMock()
     mock_process.is_alive.return_value = True
     mock_process_cls.return_value = mock_process
@@ -30,6 +33,7 @@ def test_process_manager_lifecycle(mock_process_cls):
 
 @patch("debate.services.debate.process_manager.multiprocessing.Process")
 def test_process_manager_restart(mock_process_cls):
+    """Auto-generated docstring."""
     mock_process = MagicMock()
     mock_process.is_alive.return_value = True
     mock_process_cls.return_value = mock_process

@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from abc import abstractmethod
 from datetime import datetime, timezone
@@ -9,12 +11,11 @@ from debate.services.skills.skill_base import SkillBase
 from debate.shared.constants import AgentRole, MessageType
 
 
-
-
 class BaseSubagent(BaseAgent):
     """Abstract base class for Pro and Con subagents."""
 
     def __init__(self, role: AgentRole, session_id: str, position: str):
+        """Auto-generated docstring."""
         super().__init__(role, session_id)
         self.position = position
         self.persona = "hitchens" if role == AgentRole.PRO else "chomsky"
@@ -51,6 +52,7 @@ class BaseSubagent(BaseAgent):
 
 
     def generate_argument(self, round_number: int, history: list[DebateMessage]) -> DebateMessage:
+        """Auto-generated docstring."""
         prompt = self._build_argument_prompt(round_number, history)
 
         messages = [{"role": "user", "content": prompt}]
@@ -72,6 +74,7 @@ class BaseSubagent(BaseAgent):
         )
 
     def generate_counter_argument(self, opponent_message: DebateMessage, round_number: int) -> DebateMessage:
+        """Auto-generated docstring."""
         prompt = self._build_counter_argument_prompt(opponent_message, round_number)
 
         messages = [{"role": "user", "content": prompt}]

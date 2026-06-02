@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime
 
@@ -9,6 +11,7 @@ from debate.shared.constants import AgentRole, MessageType
 
 
 def create_valid_message(evidence_list=None):
+    """Auto-generated docstring."""
     if evidence_list is None:
         evidence_list = [
             Evidence(
@@ -32,6 +35,7 @@ def create_valid_message(evidence_list=None):
     )
 
 def test_serialize_deserialize_round_trip():
+    """Auto-generated docstring."""
     msg = create_valid_message()
     json_str = msg.to_json()
 
@@ -44,6 +48,7 @@ def test_serialize_deserialize_round_trip():
     assert new_msg.evidence[0].url == "http://example.com"
 
 def test_validation_fails_on_invalid_role():
+    """Auto-generated docstring."""
     with pytest.raises(ValidationError):
         DebateMessage(
             message_id="id",
@@ -57,6 +62,7 @@ def test_validation_fails_on_invalid_role():
         )
 
 def test_validate_web_search_used_requires_evidence():
+    """Auto-generated docstring."""
     msg_with_evidence = create_valid_message()
     assert msg_with_evidence.validate_web_search_used() is True
 
@@ -64,6 +70,7 @@ def test_validate_web_search_used_requires_evidence():
     assert msg_no_evidence.validate_web_search_used() is False
 
 def test_from_json_raises_on_malformed_input():
+    """Auto-generated docstring."""
     malformed_json = '{"message_id": "123", "sender": "pro"' # invalid JSON
     with pytest.raises(ValidationError):
         # pydantic raises ValidationError on invalid JSON in model_validate_json
@@ -74,6 +81,7 @@ def test_from_json_raises_on_malformed_input():
         DebateMessage.from_json(invalid_schema_json)
 
 def test_empty_evidence_list_serializes_correctly():
+    """Auto-generated docstring."""
     msg = create_valid_message(evidence_list=[])
     json_str = msg.to_json()
 

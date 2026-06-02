@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import glob
 import os
 
@@ -11,10 +13,12 @@ from debate.cli import cost, replay, run, visualize
 console = Console()
 
 def display_header():
+    """Auto-generated docstring."""
     console.clear()
     console.print(Panel.fit("[bold cyan]Agentic Debate System[/bold cyan]\nHitchens vs Chomsky", border_style="cyan"))
 
 def run_menu():
+    """Auto-generated docstring."""
     while True:
         display_header()
         console.print("1. Start a new debate")

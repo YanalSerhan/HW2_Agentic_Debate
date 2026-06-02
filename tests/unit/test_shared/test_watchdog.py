@@ -1,29 +1,41 @@
+"""Auto-generated docstring."""
+
 import time
 
 from debate.shared.watchdog import WatchdogMixin
 
 
 class DummyProcess:
+    """Auto-generated docstring."""
+
     def __init__(self):
+        """Auto-generated docstring."""
         self.killed = False
         self.alive = True
 
     def kill(self):
+        """Auto-generated docstring."""
         self.killed = True
         self.alive = False
 
     def is_alive(self):
+        """Auto-generated docstring."""
         return self.alive
 
 class DummyAgent(WatchdogMixin):
+    """Auto-generated docstring."""
+
     def __init__(self):
+        """Auto-generated docstring."""
         super().__init__()
         self.kill_called = False
 
     def on_watchdog_kill(self):
+        """Auto-generated docstring."""
         self.kill_called = True
 
 def test_watchdog_kills_process_on_timeout():
+    """Auto-generated docstring."""
     agent = DummyAgent()
     process = DummyProcess()
 
@@ -39,6 +51,7 @@ def test_watchdog_kills_process_on_timeout():
     agent.stop_watchdog()
 
 def test_watchdog_reset_prevents_kill():
+    """Auto-generated docstring."""
     agent = DummyAgent()
     process = DummyProcess()
 
@@ -56,6 +69,7 @@ def test_watchdog_reset_prevents_kill():
     agent.stop_watchdog()
 
 def test_watchdog_cleans_up_on_stop():
+    """Auto-generated docstring."""
     agent = DummyAgent()
     process = DummyProcess()
 
@@ -66,6 +80,7 @@ def test_watchdog_cleans_up_on_stop():
     assert process.killed is False
 
 def test_context_manager_stops_watchdog():
+    """Auto-generated docstring."""
     process = DummyProcess()
     with DummyAgent() as agent:
         agent.start_watchdog(timeout=1.0, process=process)

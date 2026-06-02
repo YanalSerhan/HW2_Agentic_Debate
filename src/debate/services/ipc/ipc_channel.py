@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import multiprocessing
 import queue
 
@@ -6,16 +8,19 @@ from debate.services.ipc.message import DebateMessage
 
 class IPCTimeoutError(Exception):
     """Raised when receive operation times out."""
+
     pass
 
 class IPCQueueFullError(Exception):
     """Raised when send operation fails because queue is full."""
+
     pass
 
 class IPCChannel:
     """Inter-Process Communication channel based on multiprocessing.Queue."""
 
     def __init__(self, maxsize: int = 100):
+        """Auto-generated docstring."""
         self._queue = multiprocessing.Queue(maxsize=maxsize)
 
     def send(self, message: DebateMessage):

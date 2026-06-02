@@ -25,7 +25,6 @@ def run(
     verbose: bool = typer.Option(False, "--verbose/--no-verbose", help="Show live debate vs. just verdict"),
 ):
     """Run a debate on a given topic."""
-
     # Configure root logger
     numeric_level = getattr(logging, log_level.upper(), None)
     if isinstance(numeric_level, int):
@@ -41,6 +40,7 @@ def run(
     # Set up callback if verbose
     if verbose:
         def on_round(rnd_num: int, pro_msg: str, con_msg: str):
+            """Auto-generated docstring."""
             display_round(rnd_num, pro_msg, con_msg)
         sdk.on_round = on_round
 
@@ -137,6 +137,7 @@ def visualize(
             console.print(f"  - {name}: [dim]{path}[/dim]")
 
 def main():
+    """Auto-generated docstring."""
     app()
 
 if __name__ == "__main__":

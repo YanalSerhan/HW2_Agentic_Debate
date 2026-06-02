@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import logging
 import multiprocessing
 
@@ -48,7 +50,9 @@ def _subagent_worker(
 
 class ProcessManager:
     """Manages child processes for debate."""
+
     def __init__(self, session_id, topic, config, gatekeeper, father, f_to_p, p_to_f, f_to_c, c_to_f):
+        """Auto-generated docstring."""
         self.session_id = session_id
         self.topic = topic
         self.config = config
@@ -62,6 +66,7 @@ class ProcessManager:
         self.con_process = None
 
     def start_processes(self):
+        """Auto-generated docstring."""
         roles = RoleAssigner().assign_roles(self.topic)
         self.pro_persona = roles["pro"]
         self.con_persona = roles["con"]
@@ -82,6 +87,7 @@ class ProcessManager:
         self.father.start_watchdog(timeout=timeout_sec, process=[self.pro_process, self.con_process])
 
     def terminate_processes(self):
+        """Auto-generated docstring."""
         for proc in (self.pro_process, self.con_process):
             if proc and proc.is_alive():
                 proc.terminate()
@@ -89,6 +95,7 @@ class ProcessManager:
         self.father.stop_watchdog()
 
     def restart_child(self, role: AgentRole) -> bool:
+        """Auto-generated docstring."""
         restart_key = f"_restart_count_{role.value}"
         count = getattr(self, restart_key, 0)
         if count >= MAX_RESTART_ATTEMPTS:

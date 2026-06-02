@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import uuid
 from datetime import datetime, timezone
 
@@ -10,6 +12,7 @@ class JSONProtocolValidator(LoggingMixin):
     """Validates incoming IPC messages, ensuring they are well-formed JSON and adhere to the DebateMessage schema."""
 
     def __init__(self, agent_role: AgentRole):
+        """Auto-generated docstring."""
         super().__init__()
         self._role = agent_role
 

@@ -1,9 +1,12 @@
+"""Auto-generated docstring."""
+
 import json
 
 from debate.services.replay.replayer import DebateReplayer
 
 
 def test_debate_replayer(tmp_path, capsys, monkeypatch):
+    """Auto-generated docstring."""
     monkeypatch.setattr("time.sleep", lambda x: None)
 
     transcript = {
@@ -40,6 +43,7 @@ def test_debate_replayer(tmp_path, capsys, monkeypatch):
     assert "Some logic." in captured
 
 def test_debate_replayer_invalid_file(capsys):
+    """Auto-generated docstring."""
     replayer = DebateReplayer()
     replayer.replay("nonexistent.json")
     captured = capsys.readouterr().out

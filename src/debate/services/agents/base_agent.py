@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -11,12 +13,14 @@ from debate.shared.watchdog import WatchdogMixin
 
 class WebSearchNotUsedError(Exception):
     """Raised when the API response does not include a web search tool use."""
+
     pass
 
 class BaseAgent(ABC, LoggingMixin, WatchdogMixin, IPCMixin, ApiMixin):
     """Abstract base agent."""
 
     def __init__(self, role: AgentRole, session_id: str):
+        """Auto-generated docstring."""
         LoggingMixin.__init__(self)
         WatchdogMixin.__init__(self)
         IPCMixin.__init__(self)

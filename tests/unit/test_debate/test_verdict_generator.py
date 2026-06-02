@@ -1,3 +1,5 @@
+"""Auto-generated docstring."""
+
 import json
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
@@ -31,6 +33,7 @@ def _make_transcript():
     ]
 
 def test_verdict_always_has_winner():
+    """Auto-generated docstring."""
     master = _create_fake_master(pro_score=90.0, con_score=80.0)
     generator = VerdictGenerator(master)
 
@@ -42,6 +45,7 @@ def test_verdict_always_has_winner():
 
 def test_tie_resolved_by_tiebreaker():
     # If the LLM returns a tie, VerdictGenerator must break it (rhetorical edge +5 to PRO typically)
+    """Auto-generated docstring."""
     master = _create_fake_master(pro_score=85.0, con_score=85.0)
     generator = VerdictGenerator(master)
 
@@ -53,6 +57,7 @@ def test_tie_resolved_by_tiebreaker():
     assert verdict.winner == AgentRole.PRO
 
 def test_reasoning_paragraph_non_empty():
+    """Auto-generated docstring."""
     master = _create_fake_master(reasoning="The Pro agent made superior arguments regarding X.")
     generator = VerdictGenerator(master)
 
@@ -62,6 +67,7 @@ def test_reasoning_paragraph_non_empty():
     assert "superior arguments" in verdict.reasoning
 
 def test_key_winning_arguments_length_three():
+    """Auto-generated docstring."""
     master = _create_fake_master(key_args=["Only one argument"])
     generator = VerdictGenerator(master)
 
@@ -75,6 +81,7 @@ def test_key_winning_arguments_length_three():
 def test_scores_sum_to_100_per_dimension():
     # Since we use an LLM, we just test that the generator handles arbitrary valid scores.
     # The prompt explicitly asks for sums up to 100.
+    """Auto-generated docstring."""
     master = _create_fake_master(pro_score=100.0, con_score=0.0)
     generator = VerdictGenerator(master)
     verdict = generator.generate_verdict(_make_transcript(), "session1", 500, 0.05)
